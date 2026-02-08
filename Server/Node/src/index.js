@@ -5,6 +5,10 @@ const pool = require("./config/db"); // Changed from "./db" to "../db"
 const authRoutes= require("./routes/auth.routes");
 const app = express();
 const companyRoutes =require("./routes/company.routes")
+const investorRoutes = require("./routes/investor.routes");
+const investorDashboardRoutes = require("./routes/investor.dashboard.routes");
+const investorComparisonRoutes = require("./routes/investor.comparison.routes");
+
 
 // Middleware
 app.use(cors());
@@ -36,6 +40,10 @@ app.get("/test-db", async (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/company", companyRoutes);
+app.use("/api/investor", investorRoutes);
+app.use("/api/investor", investorDashboardRoutes);
+app.use("/api/investor", investorComparisonRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;
