@@ -129,15 +129,14 @@ export default function EcoLensHomepage() {
           {/* CTA Button */}
          <div className="hidden md:flex items-center gap-4">
             <Link 
-                to="/auth" 
+                to="/login" 
                 className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors duration-200"
             >
                 Sign In
             </Link>
             <Link 
-                to="/auth" 
+                to="/signup" 
                 className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg hover:scale-105 transition-all duration-300"
-                onClick={() => {/* You can set state to show signup by default */}}
             >
                 Get Started
             </Link>
@@ -198,7 +197,7 @@ export default function EcoLensHomepage() {
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2013&q=80")',
+              backgroundImage: 'url("https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?")',
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/40"></div>

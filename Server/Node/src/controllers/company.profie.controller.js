@@ -1,6 +1,49 @@
 const pool = require("../config/db.js");
 
-// Update / Setup Company Profile
+/**
+ * Get Company Profile
+ * GET /profile
+ */
+const getCompanyProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await pool.query(
+      `SELECT c.id, c.name as company_name, c.industry, c.country, c.market_cap,
+              u.email, u.name as user_name
+       FROM companies c
+       JOIN users u ON c.user_id = u.id
+       WHERE c.user_id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Company profile not found" });
+    }
+
+    const row = result.rows[0];
+
+    return res.json({
+      success: true,
+      data: {
+        companyName: row.company_name,
+        industry: row.industry,
+        country: row.country,
+        marketCap: row.market_cap,
+        email: row.email,
+        userName: row.user_name,
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to fetch company profile" });
+  }
+};
+
+/**
+ * Update / Setup Company Profile
+ * PUT /profile
+ */
 const updateCompanyProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -41,4 +84,4 @@ const updateCompanyProfile = async (req, res) => {
   }
 };
 
-module.exports = { updateCompanyProfile };
+module.exports = { getCompanyProfile, updateCompanyProfile };

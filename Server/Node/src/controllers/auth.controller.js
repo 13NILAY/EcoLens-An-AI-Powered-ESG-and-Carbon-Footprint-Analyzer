@@ -37,7 +37,7 @@ const signup = async (req, res) => {
 
     const user = newUser.rows[0];
 
-    // 🔥 ROLE SETUP STARTS HERE 🔥
+    //   ROLE SETUP STARTS HERE 🔥
 
     if (role === "company") {
       await pool.query(
@@ -55,7 +55,7 @@ const signup = async (req, res) => {
       );
     }
 
-    // 🔥 ROLE SETUP ENDS HERE 🔥
+    //   ROLE SETUP ENDS HERE 🔥
 
     // Generate JWT
     const token = jwt.sign(
@@ -106,7 +106,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "180d" }
     );
 
     return res.json({
@@ -125,4 +125,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup,login };
+module.exports = { signup, login };

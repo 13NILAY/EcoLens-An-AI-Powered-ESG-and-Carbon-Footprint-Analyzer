@@ -1,20 +1,50 @@
 // components/company/CompanyLayout.jsx
-import { useState } from 'react'
-import { Link, useLocation, Outlet } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
 import { 
   Leaf, Upload, BarChart3, History, Menu, X, 
   ChevronDown, Building, LogOut, Settings 
 } from 'lucide-react'
+import { clearAuth, getAuthToken } from '../../services/auth'
+import { getCompanyProfile } from '../../services/profile'
 
 export default function CompanyLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+  const [companyName, setCompanyName] = useState('Company')
+  const [userEmail, setUserEmail] = useState('')
   const location = useLocation()
+  const navigate = useNavigate()
+  const token = getAuthToken()
+
+  // Fetch real company data on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getCompanyProfile(token)
+        if (response && response.data) {
+          setCompanyName(response.data.companyName || 'Company')
+          setUserEmail(response.data.email || '')
+        }
+      } catch (err) {
+        // Silently fail — use defaults
+        console.log('Could not fetch company profile for layout')
+      }
+    }
+
+    if (token) fetchProfile()
+  }, [token])
+
+  const handleLogout = () => {
+    clearAuth()
+    navigate('/login')
+  }
 
   const navigation = [
     { name: 'Upload Reports', href: '/company/upload', icon: Upload },
     { name: 'Dashboard', href: '/company/dashboard', icon: BarChart3 },
     { name: 'Report History', href: '/company/history', icon: History },
+    { name: 'Settings', href: '/company/settings', icon: Settings },
   ]
 
   const isActive = (path) => location.pathname === path
@@ -77,15 +107,15 @@ export default function CompanyLayout() {
           })}
         </nav>
 
-        {/* User section */}
+        {/* User section — real data */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center">
               <Building size={16} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">ABC Corporation</div>
-              <div className="text-xs text-gray-500">Premium Plan</div>
+              <div className="text-sm font-medium text-gray-900 truncate">{companyName}</div>
+              <div className="text-xs text-gray-500 truncate">{userEmail || 'Company Portal'}</div>
             </div>
           </div>
         </div>
@@ -113,15 +143,15 @@ export default function CompanyLayout() {
               </div>
             </div>
 
-            {/* User menu */}
+            {/* User menu — real data */}
             <div className="relative">
               <button 
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
               >
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">ABC Corporation</div>
-                  <div className="text-xs text-gray-500">admin@abccorp.com</div>
+                  <div className="text-sm font-medium text-gray-900">{companyName}</div>
+                  <div className="text-xs text-gray-500">{userEmail}</div>
                 </div>
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center">
                   <Building size={16} className="text-white" />
@@ -132,11 +162,14 @@ export default function CompanyLayout() {
               {/* Dropdown menu */}
               {userDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                  <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                  <button 
+                    onClick={() => { setUserDropdownOpen(false); navigate('/company/settings'); }}
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
                     <Settings size={16} />
                     Settings
                   </button>
-                  <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
+                  <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
                     <LogOut size={16} />
                     Sign Out
                   </button>

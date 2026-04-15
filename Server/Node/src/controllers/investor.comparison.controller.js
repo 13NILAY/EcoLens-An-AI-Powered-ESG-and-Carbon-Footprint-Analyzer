@@ -6,15 +6,26 @@ const pool = require("../config/db");
 const getCompanyList = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, name, industry
+      SELECT 
+        id, 
+        name, 
+        industry
       FROM companies
-      ORDER BY name
+      WHERE id IS NOT NULL AND name IS NOT NULL
+      ORDER BY name ASC
     `);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        message: "No companies found",
+        data: []
+      });
+    }
 
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch company list" });
+    console.error("Error fetching company list:", error);
+    res.status(500).json({ message: "Failed to fetch company list", error: error.message });
   }
 };
 
@@ -33,6 +44,9 @@ const deriveInsights = (scores) => {
   if (scores.social < 60) weaknesses.push("Social practices need improvement");
   if (scores.governance < 60) weaknesses.push("Governance concerns");
 
+  if (strengths.length === 0) strengths.push("Performance meets industry standards");
+  if (weaknesses.length === 0) weaknesses.push("No significant concerns identified");
+
   return { strengths, weaknesses };
 };
 
@@ -43,8 +57,18 @@ const compareCompanies = async (req, res) => {
   try {
     const { company1, company2 } = req.query;
 
+    // Validate inputs
     if (!company1 || !company2) {
-      return res.status(400).json({ message: "Both company IDs are required" });
+      return res.status(400).json({ 
+        message: "Both company IDs or names are required",
+        required: ['company1', 'company2']
+      });
+    }
+
+    if (String(company1) === String(company2)) {
+      return res.status(400).json({ 
+        message: "Cannot compare the same company with itself"
+      });
     }
 
     const query = `
@@ -60,7 +84,7 @@ const compareCompanies = async (req, res) => {
       FROM companies c
       JOIN reports r ON r.company_id = c.id
       JOIN esg_scores es ON es.report_id = r.id
-      WHERE c.id = $1
+      WHERE (c.id::text = $1 OR LOWER(c.name) = LOWER($1))
       ORDER BY r.created_at DESC
       LIMIT 1
     `;
@@ -69,7 +93,13 @@ const compareCompanies = async (req, res) => {
     const c2 = await pool.query(query, [company2]);
 
     if (c1.rows.length === 0 || c2.rows.length === 0) {
-      return res.status(404).json({ message: "Company data not found" });
+      return res.status(404).json({ 
+        message: "One or both companies not found in database",
+        found: {
+          company1: c1.rows.length > 0,
+          company2: c2.rows.length > 0
+        }
+      });
     }
 
     const company1Data = c1.rows[0];
@@ -84,10 +114,10 @@ const compareCompanies = async (req, res) => {
         name: company1Data.name,
         industry: company1Data.industry,
         marketCap: company1Data.market_cap,
-        esgScore: company1Data.overall_score,
-        environmental: { score: company1Data.environmental },
-        social: { score: company1Data.social },
-        governance: { score: company1Data.governance },
+        esgScore: parseFloat(company1Data.overall_score) || 0,
+        environmental: { score: parseFloat(company1Data.environmental) || 0 },
+        social: { score: parseFloat(company1Data.social) || 0 },
+        governance: { score: parseFloat(company1Data.governance) || 0 },
         strengths: insights1.strengths,
         weaknesses: insights1.weaknesses
       },
@@ -96,10 +126,10 @@ const compareCompanies = async (req, res) => {
         name: company2Data.name,
         industry: company2Data.industry,
         marketCap: company2Data.market_cap,
-        esgScore: company2Data.overall_score,
-        environmental: { score: company2Data.environmental },
-        social: { score: company2Data.social },
-        governance: { score: company2Data.governance },
+        esgScore: parseFloat(company2Data.overall_score) || 0,
+        environmental: { score: parseFloat(company2Data.environmental) || 0 },
+        social: { score: parseFloat(company2Data.social) || 0 },
+        governance: { score: parseFloat(company2Data.governance) || 0 },
         strengths: insights2.strengths,
         weaknesses: insights2.weaknesses
       },
@@ -107,8 +137,8 @@ const compareCompanies = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Comparison failed" });
+    console.error("Comparison error:", error);
+    res.status(500).json({ message: "Comparison failed", error: error.message });
   }
 };
 

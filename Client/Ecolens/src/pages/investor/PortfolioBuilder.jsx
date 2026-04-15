@@ -1,106 +1,84 @@
 // pages/investor/PortfolioBuilder.jsx
-import { useState } from 'react'
-import { Plus, Minus, Filter, Download, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Minus, Filter, Download, TrendingUp, AlertTriangle, CheckCircle, Loader, AlertCircle } from 'lucide-react'
 import { 
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer 
 } from 'recharts'
+import { getAuthToken } from '../../services/auth'
+import { getInvestorCompanies, getInvestorPortfolio, buildInvestorPortfolio, saveInvestorPortfolio } from '../../services/investor'
 
 export default function PortfolioBuilder() {
+  const token = getAuthToken()
   const [selectedCompanies, setSelectedCompanies] = useState([])
   const [filters, setFilters] = useState({
     minEsgScore: 70,
     industries: [],
     ethicalPreferences: []
   })
+  
+  // Data state
+  const [availableCompanies, setAvailableCompanies] = useState([])
+  const [portfolioData, setPortfolioData] = useState(null)
+  
+  // UI state
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // Mock companies data
-  const availableCompanies = [
-    {
-      id: 1,
-      name: 'Microsoft Corp',
-      ticker: 'MSFT',
-      industry: 'Technology',
-      esgScore: 82,
-      marketCap: '2.1T',
-      risk: 'Low',
-      environmental: 85,
-      social: 80,
-      governance: 81,
-      price: '378.85',
-      change: '+1.2%'
-    },
-    {
-      id: 2,
-      name: 'NextEra Energy',
-      ticker: 'NEE',
-      industry: 'Utilities',
-      esgScore: 88,
-      marketCap: '120B',
-      risk: 'Low',
-      environmental: 92,
-      social: 83,
-      governance: 89,
-      price: '61.45',
-      change: '+0.8%'
-    },
-    {
-      id: 3,
-      name: 'Johnson & Johnson',
-      ticker: 'JNJ',
-      industry: 'Healthcare',
-      esgScore: 85,
-      marketCap: '380B',
-      risk: 'Low',
-      environmental: 83,
-      social: 86,
-      governance: 86,
-      price: '159.32',
-      change: '+0.5%'
-    },
-    {
-      id: 4,
-      name: 'Apple Inc',
-      ticker: 'AAPL',
-      industry: 'Technology',
-      esgScore: 79,
-      marketCap: '2.8T',
-      risk: 'Medium',
-      environmental: 82,
-      social: 76,
-      governance: 79,
-      price: '185.92',
-      change: '+1.1%'
-    },
-    {
-      id: 5,
-      name: 'Salesforce',
-      ticker: 'CRM',
-      industry: 'Technology',
-      esgScore: 84,
-      marketCap: '280B',
-      risk: 'Low',
-      environmental: 80,
-      social: 85,
-      governance: 87,
-      price: '278.15',
-      change: '+0.7%'
-    },
-    {
-      id: 6,
-      name: 'Tesla Inc',
-      ticker: 'TSLA',
-      industry: 'Automotive',
-      esgScore: 68,
-      marketCap: '610B',
-      risk: 'High',
-      environmental: 72,
-      social: 62,
-      governance: 70,
-      price: '218.89',
-      change: '-2.1%'
+  // Fetch companies and portfolio on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const [companiesResponse, portfolioResponse] = await Promise.all([
+          getInvestorCompanies(token),
+          getInvestorPortfolio(token).catch(() => null) // Portfolio might not exist yet
+        ])
+
+        // Transform companies data
+        if (companiesResponse?.data) {
+          const transformed = companiesResponse.data.map(company => ({
+            id: company.id,
+            name: company.company_name || company.name,
+            ticker: company.ticker || 'N/A',
+            industry: company.industry || 'N/A',
+            esgScore: company.esg_score || company.esgScore || 0,
+            marketCap: company.market_cap || 'N/A',
+            risk: company.risk || 'Medium',
+            environmental: company.environmental_score || company.environmental || 0,
+            social: company.social_score || company.social || 0,
+            governance: company.governance_score || company.governance || 0,
+            price: company.price || '0.00',
+            change: company.price_change || '+0.0%'
+          }))
+          setAvailableCompanies(transformed)
+        }
+
+        // Set portfolio data if exists
+        if (portfolioResponse?.data) {
+          setPortfolioData(portfolioResponse.data)
+          // Load selected companies from existing portfolio
+          if (portfolioResponse.data.companies) {
+            setSelectedCompanies(portfolioResponse.data.companies)
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching portfolio data:', err)
+        setError('Failed to load portfolio builder data')
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    if (token) {
+      fetchData()
+    }
+  }, [token])
+
+ 
 
   // Ethical preferences
   const ethicalOptions = [
@@ -167,29 +145,91 @@ export default function PortfolioBuilder() {
     companies: count
   }))
 
-  const generatePortfolio = () => {
-    // Filter companies based on selected criteria
-    let filtered = availableCompanies.filter(company => 
-      company.esgScore >= filters.minEsgScore &&
-      (filters.industries.length === 0 || filters.industries.includes(company.industry))
-    )
+const generatePortfolio = async () => {
+  try {
+    setLoading(true)
+    setError(null)
 
-    // Apply ethical preferences (simplified logic)
-    if (filters.ethicalPreferences.length > 0) {
-      filtered = filtered.filter(company => {
-        // This would be more sophisticated in real implementation
-        return company.esgScore >= 75 // Simplified for demo
-      })
+    const response = await buildInvestorPortfolio(token)
+
+    setPortfolioData(response)
+    setSelectedCompanies(response.portfolio)
+
+  } catch (err) {
+    console.error(err)
+    setError('Failed to build portfolio')
+  } finally {
+    setLoading(false)
+  }
+}
+
+const savePortfolio = async () => {
+  try {
+    setLoading(true)
+    setError(null)
+
+    if (!portfolioData || !portfolioData.portfolio) {
+      setError('No portfolio to save. Please generate a portfolio first.')
+      setLoading(false)
+      return
     }
 
-    // Take top 10 by ESG score
-    filtered = filtered.sort((a, b) => b.esgScore - a.esgScore).slice(0, 10)
+    const resp = await saveInvestorPortfolio(token, portfolioData)
     
-    setSelectedCompanies(filtered)
+    setSaveSuccess(true)
+    setTimeout(() => setSaveSuccess(false), 3000)
+    
+  } catch (err) {
+    console.error(err)
+    setError('Failed to save portfolio')
+  } finally {
+    setLoading(false)
+  }
+}
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading portfolio builder...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-4">
+          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Portfolio</h3>
+            <p className="text-red-700">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-8">
+      {/* Success Message */}
+      {saveSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3 animate-pulse">
+          <CheckCircle className="w-5 h-5 text-emerald-600" />
+          <p className="text-emerald-700 font-medium">Portfolio saved successfully!</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -197,6 +237,14 @@ export default function PortfolioBuilder() {
           <p className="text-lg text-gray-600">Build sustainable investment portfolios with AI-powered ESG insights</p>
         </div>
         <div className="flex items-center gap-4">
+          <button 
+            onClick={savePortfolio}
+            disabled={!portfolioData || loading}
+            className="bg-emerald-600 text-white rounded-xl px-4 py-2 text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <CheckCircle size={16} />
+            Save Portfolio
+          </button>
           <button className="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2">
             <Download size={16} />
             Export Portfolio

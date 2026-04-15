@@ -1,0 +1,431 @@
+[
+  {
+    "metric": "SCOPE_1",
+    "value": 88329599.97836141,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_1",
+    "value": 36550054.19735007,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_1",
+    "value": 7786547.518691522,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_2",
+    "value": 66789821.84733717,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_2",
+    "value": 55856514.85319406,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_2",
+    "value": 18157216.027050182,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_3",
+    "value": 216567246.84309763,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_3",
+    "value": 10297486.29663757,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_3",
+    "value": 185577139.33140868,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "ENERGY_CONSUMPTION",
+    "value": 20281333.248496357,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "ENERGY_CONSUMPTION",
+    "value": 30277740.116633594,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "ENERGY_CONSUMPTION",
+    "value": 24938922.47790071,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WATER_USAGE",
+    "value": 63671902.81119617,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WATER_USAGE",
+    "value": 17019174.540993486,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WATER_USAGE",
+    "value": 58881491.765472904,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WASTE_GENERATED",
+    "value": 3731798.051437084,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WASTE_GENERATED",
+    "value": 2393593.8054764215,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "WASTE_GENERATED",
+    "value": 261184.99484437009,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "GENDER_DIVERSITY",
+    "value": 61.542782769439086,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "GENDER_DIVERSITY",
+    "value": 92.60111744600398,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "GENDER_DIVERSITY",
+    "value": 17.288905846747195,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SAFETY_INCIDENTS",
+    "value": 4458.3877704104025,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SAFETY_INCIDENTS",
+    "value": 8546.199528223502,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SAFETY_INCIDENTS",
+    "value": 5666.0119975822745,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "EMPLOYEE_WELLBEING",
+    "value": 27.63817286567557,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "EMPLOYEE_WELLBEING",
+    "value": 98.21048970343492,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "EMPLOYEE_WELLBEING",
+    "value": 64.31252311110318,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "DATA_BREACHES",
+    "value": 296.3427052948133,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "DATA_BREACHES",
+    "value": 566.6916128066222,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "DATA_BREACHES",
+    "value": 338.52327576321585,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "COMPLAINTS",
+    "value": 5239.359106823377,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "COMPLAINTS",
+    "value": 5366.3835384228705,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "COMPLAINTS",
+    "value": 2973.0747177727535,
+    "is_valid": true,
+    "issues": [],
+    "test_type": "valid_range"
+  },
+  {
+    "metric": "SCOPE_1",
+    "value": -885.4665232932715,
+    "is_valid": false,
+    "issues": [
+      "Value -885.4665232932715 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "SCOPE_1",
+    "value": 100006110.32641344,
+    "is_valid": false,
+    "issues": [
+      "Value 100006110.32641344 above maximum 100000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "SCOPE_2",
+    "value": -862.1754065581439,
+    "is_valid": false,
+    "issues": [
+      "Value -862.1754065581439 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "SCOPE_2",
+    "value": 100003969.67394201,
+    "is_valid": false,
+    "issues": [
+      "Value 100003969.67394201 above maximum 100000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "SCOPE_3",
+    "value": -774.7064794599241,
+    "is_valid": false,
+    "issues": [
+      "Value -774.7064794599241 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "SCOPE_3",
+    "value": 500008554.04999965,
+    "is_valid": false,
+    "issues": [
+      "Value 500008554.04999965 above maximum 500000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "ENERGY_CONSUMPTION",
+    "value": -597.6415216317239,
+    "is_valid": false,
+    "issues": [
+      "Value -597.6415216317239 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "ENERGY_CONSUMPTION",
+    "value": 50000376.3386628,
+    "is_valid": false,
+    "issues": [
+      "Value 50000376.3386628 above maximum 50000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "WATER_USAGE",
+    "value": -816.0228275868113,
+    "is_valid": false,
+    "issues": [
+      "Value -816.0228275868113 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "WATER_USAGE",
+    "value": 100003600.28579065,
+    "is_valid": false,
+    "issues": [
+      "Value 100003600.28579065 above maximum 100000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "WASTE_GENERATED",
+    "value": -544.632027492578,
+    "is_valid": false,
+    "issues": [
+      "Value -544.632027492578 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "WASTE_GENERATED",
+    "value": 10009090.796198014,
+    "is_valid": false,
+    "issues": [
+      "Value 10009090.796198014 above maximum 10000000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "GENDER_DIVERSITY",
+    "value": -239.56724641917583,
+    "is_valid": false,
+    "issues": [
+      "Value -239.56724641917583 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "GENDER_DIVERSITY",
+    "value": 2695.100973804587,
+    "is_valid": false,
+    "issues": [
+      "Value 2695.100973804587 above maximum 100"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "SAFETY_INCIDENTS",
+    "value": -964.5451430456186,
+    "is_valid": false,
+    "issues": [
+      "Value -964.5451430456186 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "SAFETY_INCIDENTS",
+    "value": 17085.39989113114,
+    "is_valid": false,
+    "issues": [
+      "Value 17085.39989113114 above maximum 10000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "EMPLOYEE_WELLBEING",
+    "value": -309.53742766514847,
+    "is_valid": false,
+    "issues": [
+      "Value -309.53742766514847 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "EMPLOYEE_WELLBEING",
+    "value": 3374.348068957458,
+    "is_valid": false,
+    "issues": [
+      "Value 3374.348068957458 above maximum 100"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "DATA_BREACHES",
+    "value": -768.6378683227715,
+    "is_valid": false,
+    "issues": [
+      "Value -768.6378683227715 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "DATA_BREACHES",
+    "value": 7883.725061156928,
+    "is_valid": false,
+    "issues": [
+      "Value 7883.725061156928 above maximum 1000"
+    ],
+    "test_type": "above_range"
+  },
+  {
+    "metric": "COMPLAINTS",
+    "value": -883.163858950716,
+    "is_valid": false,
+    "issues": [
+      "Value -883.163858950716 below minimum 0"
+    ],
+    "test_type": "below_range"
+  },
+  {
+    "metric": "COMPLAINTS",
+    "value": 14923.874216852524,
+    "is_valid": false,
+    "issues": [
+      "Value 14923.874216852524 above maximum 10000"
+    ],
+    "test_type": "above_range"
+  }
+]

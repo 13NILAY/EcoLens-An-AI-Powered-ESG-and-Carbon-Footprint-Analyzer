@@ -1,6 +1,25 @@
 const pool = require("../config/db.js");
 
 // Setup / Update Investor Profile
+// Get investor profile
+const getInvestorProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await pool.query(
+      `SELECT id, risk_tolerance, min_esg_score 
+       FROM investor_profiles 
+       WHERE user_id = $1`,
+      [userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
 const updateInvestorProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -42,4 +61,4 @@ const updateInvestorProfile = async (req, res) => {
   }
 };
 
-module.exports = { updateInvestorProfile };
+module.exports = { updateInvestorProfile,getInvestorProfile };
