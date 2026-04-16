@@ -81,7 +81,7 @@ const uploadReport = async (req, res) => {
           headers: {
             ...formData.getHeaders(),
           },
-          timeout: 300000, // 5 minutes timeout
+          timeout: 3000000, // 5 minutes timeout
           maxBodyLength: Infinity,
           maxContentLength: Infinity,
         }
