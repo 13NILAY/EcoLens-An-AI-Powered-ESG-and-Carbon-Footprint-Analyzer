@@ -7,6 +7,7 @@
 const pool = require("../config/db");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
+const path = require("path");
 const axios = require("axios");
 const FormData = require("form-data");
 const PDFDocument = require("pdfkit");
@@ -18,6 +19,9 @@ const { saveMetrics, saveESGScores, getReportMetrics, getReportScores } = requir
 // Utils
 const { extractMetrics, calculateCarbonFootprint } = require("../utils/metricExtractor");
 const { generateRecommendations } = require("../utils/aiRecommendation");
+
+// Hybrid storage: files above this size are stored locally instead of Cloudinary
+const MAX_SIZE = 9.5 * 1024 * 1024; // 9.5 MB
 
 /**
  * Upload and process ESG report
@@ -124,31 +128,53 @@ const uploadReport = async (req, res) => {
     );
 
     // ========================================
-    // STEP 6: Upload to Cloudinary
+    // STEP 6: Upload File (Hybrid Strategy)
     // ========================================
-    console.log("☁️  Uploading to Cloudinary...");
-    
-    const uploadResult = await cloudinary.uploader.upload(file.path, {
-      resource_type: "raw",
-      folder: "Ecolens",
-      public_id: `company_${companyId}_${Date.now()}`,
-    });
+    console.log("📁 File size:", file.size);
+    console.log("📍 Storage type:", file.size > MAX_SIZE ? "LOCAL" : "CLOUDINARY");
 
-    if (!uploadResult || !uploadResult.secure_url) {
-      throw new Error("Cloudinary upload failed");
+    let fileUrl;
+
+    if (file.size > MAX_SIZE) {
+      console.log("⚠️ Large file → storing locally");
+
+      const uploadDir = path.join(__dirname, "../uploads");
+
+      // create uploads folder if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const newPath = path.join(uploadDir, file.filename);
+
+      fs.renameSync(file.path, newPath);
+
+      // IMPORTANT: return URL path, not system path
+      fileUrl = `/uploads/${file.filename}`;
+    } else {
+      console.log("☁️ Small file → uploading to Cloudinary");
+
+      const uploadResult = await cloudinary.uploader.upload(file.path, {
+        resource_type: "raw",
+        folder: "Ecolens",
+        public_id: `company_${companyId}_${Date.now()}`,
+      });
+
+      if (!uploadResult || !uploadResult.secure_url) {
+        throw new Error("Cloudinary upload failed");
+      }
+
+      fileUrl = uploadResult.secure_url;
+      console.log("✅ File uploaded to Cloudinary");
+
+      // delete local temp file after upload
+      fs.unlinkSync(file.path);
     }
 
-    const fileUrl = uploadResult.secure_url;
-    console.log("✅ File uploaded to Cloudinary");
+    console.log("🔗 File URL:", fileUrl);
 
     // ========================================
-    // STEP 7: Delete Local File
-    // ========================================
-    fs.unlinkSync(file.path);
-    filePath = null; // Mark as deleted
-
-    // ========================================
-    // STEP 8: Insert Report Record
+    // STEP 7: Insert Report Record
     // ========================================
     const reportResult = await pool.query(
       `INSERT INTO reports (company_id, file_name, file_type, file_url, status)
@@ -161,19 +187,19 @@ const uploadReport = async (req, res) => {
     console.log(`📝 Report created with ID: ${reportId}`);
 
     // ========================================
-    // STEP 9: Save Metrics to Database
+    // STEP 8: Save Metrics to Database
     // ========================================
     await saveMetrics(reportId, metrics, carbonFootprint);
     console.log("✅ Metrics saved to database");
 
     // ========================================
-    // STEP 10: Save ESG Scores to Database
+    // STEP 9: Save ESG Scores to Database
     // ========================================
     await saveESGScores(reportId, scores);
     console.log("✅ ESG scores saved to database");
 
     // ========================================
-    // STEP 11: Generate AI Recommendations
+    // STEP 10: Generate AI Recommendations
     // ========================================
     try {
       const existing = await pool.query(
@@ -212,7 +238,7 @@ const uploadReport = async (req, res) => {
     }
 
     // ========================================
-    // STEP 12: Return Success Response
+    // STEP 11: Return Success Response
     // ========================================
     return res.status(201).json({
       success: true,

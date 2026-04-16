@@ -131,14 +131,12 @@ export const isCompanyProfileComplete = (profile) => {
 /**
  * Check if investor profile is complete
  * A profile is considered complete if essential fields are filled:
- * - country
- * - market cap (marketCap)
- * - industry
+ * - risk tolerance
+ * - min ESG score
  * @param {Object} profile - Profile object from API
  * @returns {boolean} - True if profile is complete
  */
 export const isInvestorProfileComplete = (profile) => {
   if (!profile) return false
-  // Profile is complete if it has country, market cap, and industry
-  return !!(profile.country && profile.marketCap && profile.industry)
+  return !!(profile.risk_tolerance && profile.min_esg_score !== undefined)
 }

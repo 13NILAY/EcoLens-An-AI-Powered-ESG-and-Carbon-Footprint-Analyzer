@@ -6,7 +6,7 @@ import {
   Tooltip, Legend, ResponsiveContainer 
 } from 'recharts'
 import { getAuthToken } from '../../services/auth'
-import { getInvestorCompanies, getInvestorPortfolio, buildInvestorPortfolio, saveInvestorPortfolio } from '../../services/investor'
+import { getInvestorCompanies, getInvestorPortfolio, buildInvestorPortfolio, saveInvestorPortfolio, ALLOWED_INDUSTRIES } from '../../services/investor'
 
 export default function PortfolioBuilder() {
   const token = getAuthToken()
@@ -45,12 +45,12 @@ export default function PortfolioBuilder() {
             name: company.company_name || company.name,
             ticker: company.ticker || 'N/A',
             industry: company.industry || 'N/A',
-            esgScore: company.esg_score || company.esgScore || 0,
+            esgScore: company.esg_score ?? company.esgScore ?? null,
             marketCap: company.market_cap || 'N/A',
             risk: company.risk || 'Medium',
-            environmental: company.environmental_score || company.environmental || 0,
-            social: company.social_score || company.social || 0,
-            governance: company.governance_score || company.governance || 0,
+            environmental: company.environmental_score ?? company.environmental ?? null,
+            social: company.social_score ?? company.social ?? null,
+            governance: company.governance_score ?? company.governance ?? null,
             price: company.price || '0.00',
             change: company.price_change || '+0.0%'
           }))
@@ -90,7 +90,7 @@ export default function PortfolioBuilder() {
     { id: 'water_positive', name: 'Water Positive', description: 'Water conservation and recycling' }
   ]
 
-  const industries = ['Technology', 'Healthcare', 'Utilities', 'Automotive', 'Financials', 'Consumer']
+  const industries = ALLOWED_INDUSTRIES.map(i => i.charAt(0).toUpperCase() + i.slice(1))
 
   const toggleCompany = (company) => {
     if (selectedCompanies.find(c => c.id === company.id)) {

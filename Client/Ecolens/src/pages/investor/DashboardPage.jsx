@@ -10,7 +10,8 @@ import {
   getInvestorDashboardSummary, 
   getInvestorIndustryPerformance, 
   getInvestorESGSentimentTrend,
-  getInvestorCompanies 
+  getInvestorCompanies,
+  ALLOWED_INDUSTRIES 
 } from '../../services/investor'
 
 export default function InvestorDashboard() {
@@ -58,14 +59,16 @@ export default function InvestorDashboard() {
           setPortfolioSummary(summary)
         }
 
-        // Transform industry performance data
+        // Transform industry performance data — filter to allowed industries only
         if (performanceData) {
-          const transformed = performanceData.map(item => ({
-            industry: item.industry || item.name,
-            avgScore: item.avg_score || item.avgScore || item.score || 0,
-            companies: item.company_count || item.companies || 0,
-            trend: item.trend || 'stable'
-          }))
+          const transformed = performanceData
+            .map(item => ({
+              industry: item.industry || item.name,
+              avgScore: item.avg_score ?? item.avgScore ?? item.score ?? 0,
+              companies: item.company_count ?? item.companies ?? 0,
+              trend: item.trend || 'stable'
+            }))
+            .filter(item => ALLOWED_INDUSTRIES.includes(item.industry?.toLowerCase()))
           setIndustryPerformance(transformed)
         }
 
@@ -79,21 +82,21 @@ export default function InvestorDashboard() {
           setEsgTrendData(transformed)
         }
 
-        // Transform companies data
+        // Transform companies data — use ?? null to preserve nulls
         if (companiesListData) {
           const transformed = companiesListData.map(item => ({
             id: item.id,
             name: item.company_name || item.name,
             ticker: item.ticker || 'N/A',
             industry: item.industry || 'N/A',
-            esgScore: item.esg_score || item.esgScore || 0,
-            sentiment: item.sentiment_score || item.sentimentScore || 0,
+            esgScore: item.esg_score ?? item.esgScore ?? null,
+            sentiment: item.sentiment_score ?? item.sentimentScore ?? null,
             trend: item.trend || 'stable',
             marketCap: item.market_cap || 'N/A',
             revenue: item.revenue || 'N/A',
-            environmental: item.environmental_score || item.environmental || 0,
-            social: item.social_score || item.social || 0,
-            governance: item.governance_score || item.governance || 0,
+            environmental: item.environmental_score ?? item.environmental ?? null,
+            social: item.social_score ?? item.social ?? null,
+            governance: item.governance_score ?? item.governance ?? null,
             lastUpdated: item.last_updated || item.lastUpdated || new Date().toISOString().split('T')[0]
           }))
           setCompaniesData(transformed)
@@ -314,8 +317,8 @@ export default function InvestorDashboard() {
                   className="bg-transparent text-sm focus:outline-none"
                 >
                   <option value="all">All Industries</option>
-                  {[...new Set(companiesData.map(c => c.industry))].map(ind => (
-                    <option key={ind} value={ind}>{ind}</option>
+                  {ALLOWED_INDUSTRIES.map(ind => (
+                    <option key={ind} value={ind}>{ind.charAt(0).toUpperCase() + ind.slice(1)}</option>
                   ))}
                 </select>
               </div>

@@ -1,5 +1,13 @@
 // services/investor.js
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'http://localhost:8080/api'
+
+export const ALLOWED_INDUSTRIES = [
+  'technology',
+  'finance',
+  'fmcg',
+  'manufacturing',
+  'energy'
+]
 
 // Get investor dashboard summary
 export const getInvestorDashboardSummary = async (token) => {
@@ -78,7 +86,10 @@ export const getInvestorCompanies = async (token, filters = {}) => {
     
     if (minScore !== undefined) params.append('minScore', minScore)
     if (maxScore !== undefined) params.append('maxScore', maxScore)
-    if (industry && industry !== 'all') params.append('industry', industry)
+    // Enforce allowed industries
+    if (industry && industry !== 'all' && ALLOWED_INDUSTRIES.includes(industry)) {
+      params.append('industry', industry)
+    }
     if (search) params.append('search', search)
 
     const queryString = params.toString()

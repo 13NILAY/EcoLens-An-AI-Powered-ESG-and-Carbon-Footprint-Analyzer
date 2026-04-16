@@ -2,18 +2,21 @@
  * ESG Scoring Service
  * 
  * Calculates ESG scores based on extracted metrics
- * - Only uses available metrics (skips null values)
- * - Normalizes each metric to 0-100 scale
- * - Returns null if no metrics are available for a category
+ * - Weighted scoring for Environmental metrics
+ * - Log-scale normalization for emissions (Scope 1/2/3)
+ * - Minimum data requirement to prevent unreliable scores
+ * - Priority-weighted Social scoring (safety > diversity > wellbeing)
+ * - Governance penalty logic for breaches and complaints
+ * - Null-safe throughout — never replaces missing values with 0
  */
 
 /**
- * Normalize a value to 0-100 scale
+ * Normalize a value to 0-100 scale (linear)
  * @param {number} value - Raw metric value
  * @param {number} min - Minimum expected value
  * @param {number} max - Maximum expected value
  * @param {boolean} inverse - True if lower is better (e.g., emissions)
- * @returns {number} Normalized score (0-100)
+ * @returns {number|null} Normalized score (0-100) or null
  */
 const normalize = (value, min, max, inverse = false) => {
   if (value === null || value === undefined) return null;
@@ -33,7 +36,22 @@ const normalize = (value, min, max, inverse = false) => {
 };
 
 /**
+ * Log-scale normalization for emissions
+ * More realistic: penalizes high emissions non-linearly
+ * @param {number} value - Raw emission value
+ * @param {number} max - Maximum expected value
+ * @returns {number|null} Normalized score (0-100) or null
+ */
+const logNormalize = (value, max) => {
+  if (value === null || value === undefined) return null;
+
+  const score = 100 - (Math.log(value + 1) / Math.log(max + 1)) * 100;
+  return Math.max(0, Math.min(100, Math.round(score * 10) / 10));
+};
+
+/**
  * Calculate average of available values only
+ * Returns null if all values are null
  */
 const average = (values) => {
   const available = values.filter(v => v !== null && v !== undefined);
@@ -45,112 +63,153 @@ const average = (values) => {
 
 /**
  * Calculate Environmental Score
- * Metrics: scope1, scope2, scope3, energy, water, waste
- * Lower is better for emissions
+ * 
+ * Uses weighted scoring with realistic maximum thresholds.
+ * Emissions (Scope 1/2/3) use log-scale normalization.
+ * Requires minimum 30% weight coverage to produce a score.
+ * 
+ * Weights:
+ *   scope1: 0.25, scope2: 0.25, scope3: 0.30,
+ *   energy: 0.10, water: 0.05, waste: 0.05
  */
 const calculateEnvironmentalScore = (metrics) => {
-  const scores = [];
+  const weights = {
+    scope1: 0.25,
+    scope2: 0.25,
+    scope3: 0.30,
+    energy: 0.10,
+    water: 0.05,
+    waste: 0.05
+  };
 
-  // Scope 1 Emissions (tCO2e) - lower is better
-  // Benchmark: 0-1000 tons
-  if (metrics.scope1 !== null) {
-    scores.push(normalize(metrics.scope1, 0, 1000, true));
+  let totalWeight = 0;
+  let weightedSum = 0;
+
+  const addScore = (value, min, max, inverse, weight, useLog = false) => {
+    if (value !== null && value !== undefined) {
+      const score = useLog
+        ? logNormalize(value, max)
+        : normalize(value, min, max, inverse);
+
+      if (score !== null) {
+        weightedSum += score * weight;
+        totalWeight += weight;
+      }
+    }
+  };
+
+  // Updated realistic maximum thresholds:
+  // Scope 1 & 2: up to 100,000 tCO2e (was 1000)
+  // Scope 3: up to 500,000 tCO2e (was 5000)
+  // Energy: up to 10,000,000 MJ (was 100,000)
+  // Water: up to 1,000,000 kL (was 50,000)
+  // Waste: up to 100,000 MT (was 1000)
+  addScore(metrics.scope1 ?? null, 0, 100000, true, weights.scope1, true);
+  addScore(metrics.scope2 ?? null, 0, 100000, true, weights.scope2, true);
+  addScore(metrics.scope3 ?? null, 0, 500000, true, weights.scope3, true);
+  addScore(metrics.energy ?? null, 0, 10000000, true, weights.energy);
+  addScore(metrics.water ?? null, 0, 1000000, true, weights.water);
+  addScore(metrics.waste ?? null, 0, 100000, true, weights.waste);
+
+  // Minimum data requirement — need at least 30% weight coverage
+  if (totalWeight === 0 || totalWeight < 0.3) {
+    return null;
   }
 
-  // Scope 2 Emissions (tCO2e) - lower is better
-  // Benchmark: 0-1000 tons
-  if (metrics.scope2 !== null) {
-    scores.push(normalize(metrics.scope2, 0, 1000, true));
-  }
-
-  // Scope 3 Emissions (tCO2e) - lower is better
-  // Benchmark: 0-5000 tons
-  if (metrics.scope3 !== null) {
-    scores.push(normalize(metrics.scope3, 0, 5000, true));
-  }
-
-  // Energy Consumption (MJ) - lower is better
-  // Benchmark: 0-100,000 MJ
-  if (metrics.energy !== null) {
-    scores.push(normalize(metrics.energy, 0, 100000, true));
-  }
-
-  // Water Usage (KL) - lower is better
-  // Benchmark: 0-50,000 KL
-  if (metrics.water !== null) {
-    scores.push(normalize(metrics.water, 0, 50000, true));
-  }
-
-  // Waste Generated (MT) - lower is better
-  // Benchmark: 0-1000 MT
-  if (metrics.waste !== null) {
-    scores.push(normalize(metrics.waste, 0, 1000, true));
-  }
-
-  return average(scores);
+  return Math.round((weightedSum / totalWeight) * 10) / 10;
 };
 
 /**
  * Calculate Social Score
- * Metrics: genderDiversity, safetyIncidents, employeeWellbeing
+ * 
+ * Uses priority weighting: safety incidents (0.4), diversity (0.3), wellbeing (0.3)
  */
 const calculateSocialScore = (metrics) => {
-  const scores = [];
+  const weights = {
+    genderDiversity: 0.3,
+    safetyIncidents: 0.4,
+    employeeWellbeing: 0.3
+  };
+
+  let totalWeight = 0;
+  let weightedSum = 0;
 
   // Gender Diversity (%) - ideal range 40-60%
-  if (metrics.genderDiversity !== null) {
+  if (metrics.genderDiversity !== null && metrics.genderDiversity !== undefined) {
     const diversity = metrics.genderDiversity;
     let score;
     
     if (diversity >= 40 && diversity <= 60) {
-      // Perfect range
       score = 100;
     } else if (diversity < 40) {
-      // Score decreases as it gets further from 40
       score = normalize(diversity, 0, 40, false);
     } else {
-      // Score decreases as it gets further from 60
       score = normalize(diversity, 60, 100, true);
     }
     
-    scores.push(score);
+    if (score !== null) {
+      weightedSum += score * weights.genderDiversity;
+      totalWeight += weights.genderDiversity;
+    }
   }
 
-  // Safety Incidents - lower is better
-  // Benchmark: 0-50 incidents
-  if (metrics.safetyIncidents !== null) {
-    scores.push(normalize(metrics.safetyIncidents, 0, 50, true));
+  // Safety Incidents - lower is better, benchmark 0-50
+  if (metrics.safetyIncidents !== null && metrics.safetyIncidents !== undefined) {
+    const score = normalize(metrics.safetyIncidents, 0, 50, true);
+    if (score !== null) {
+      weightedSum += score * weights.safetyIncidents;
+      totalWeight += weights.safetyIncidents;
+    }
   }
 
-  // Employee Wellbeing (%) - higher is better
-  // Benchmark: 0-100%
-  if (metrics.employeeWellbeing !== null) {
-    scores.push(normalize(metrics.employeeWellbeing, 0, 100, false));
+  // Employee Wellbeing (%) - higher is better, benchmark 0-100
+  if (metrics.employeeWellbeing !== null && metrics.employeeWellbeing !== undefined) {
+    const score = normalize(metrics.employeeWellbeing, 0, 100, false);
+    if (score !== null) {
+      weightedSum += score * weights.employeeWellbeing;
+      totalWeight += weights.employeeWellbeing;
+    }
   }
 
-  return average(scores);
+  if (totalWeight === 0) return null;
+
+  return Math.round((weightedSum / totalWeight) * 10) / 10;
 };
 
 /**
  * Calculate Governance Score
- * Metrics: dataBreaches, complaints
+ * 
+ * Starts from average, then applies penalties:
+ *   - Any data breaches: -20 points
+ *   - More than 50 complaints: -10 points
+ * Score is floored at 0.
  */
 const calculateGovernanceScore = (metrics) => {
   const scores = [];
 
-  // Data Breaches - lower is better
-  // Benchmark: 0-20 breaches
-  if (metrics.dataBreaches !== null) {
+  // Data Breaches - lower is better, benchmark 0-20
+  if (metrics.dataBreaches !== null && metrics.dataBreaches !== undefined) {
     scores.push(normalize(metrics.dataBreaches, 0, 20, true));
   }
 
-  // Complaints - lower is better
-  // Benchmark: 0-100 complaints
-  if (metrics.complaints !== null) {
+  // Complaints - lower is better, benchmark 0-100
+  if (metrics.complaints !== null && metrics.complaints !== undefined) {
     scores.push(normalize(metrics.complaints, 0, 100, true));
   }
 
-  return average(scores);
+  let governanceScore = average(scores);
+  if (governanceScore === null) return null;
+
+  // Penalty logic
+  if (metrics.dataBreaches !== null && metrics.dataBreaches !== undefined && metrics.dataBreaches > 0) {
+    governanceScore -= 20;
+  }
+  if (metrics.complaints !== null && metrics.complaints !== undefined && metrics.complaints > 50) {
+    governanceScore -= 10;
+  }
+
+  governanceScore = Math.max(0, governanceScore);
+  return Math.round(governanceScore * 10) / 10;
 };
 
 /**
@@ -159,24 +218,23 @@ const calculateGovernanceScore = (metrics) => {
  * @returns {Object} ESG scores and grade
  */
 const calculateESG = (metrics) => {
-  // Calculate category scores
+  console.log("📊 ESG Inputs:", metrics);
+
   const environmental = calculateEnvironmentalScore(metrics);
   const social = calculateSocialScore(metrics);
   const governance = calculateGovernanceScore(metrics);
 
-  // Calculate overall score (average of available category scores)
+  console.log("🌱 Environmental:", environmental);
+  console.log("👥 Social:", social);
+  console.log("🏛 Governance:", governance);
+
   const overall = average([environmental, social, governance]);
 
-  // Calculate grade
   let grade = null;
   if (overall !== null) {
-    if (overall >= 80) {
-      grade = 'A';
-    } else if (overall >= 60) {
-      grade = 'B';
-    } else {
-      grade = 'C';
-    }
+    if (overall >= 80) grade = 'A';
+    else if (overall >= 60) grade = 'B';
+    else grade = 'C';
   }
 
   return {
@@ -190,5 +248,6 @@ const calculateESG = (metrics) => {
 
 module.exports = {
   calculateESG,
-  normalize, // Export for testing
+  normalize,
+  logNormalize,
 };

@@ -24,6 +24,7 @@ export default function InvestorLayout() {
     { name: 'News & Sentiment', href: '/investor/news', icon: Newspaper },
     { name: 'Portfolio Builder', href: '/investor/portfolio', icon: PieChart },
     { name: 'Company Comparison', href: '/investor/compare', icon: ArrowLeftRight },
+    { name: 'Profile', href: '/investor/profile', icon: Settings },
   ]
 
   const isActive = (path) => location.pathname === path

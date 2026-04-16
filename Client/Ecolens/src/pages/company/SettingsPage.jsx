@@ -212,17 +212,12 @@ export default function SettingsPage() {
               disabled={submitting}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="">Select an industry...</option>
-              <option value="energy">Energy & Utilities</option>
+              <option value="">Select an industry...</option> 
+              <option value="technology">Tech</option> 
+              <option value="finance">Finance</option>
+              <option value="fmcg">FMCG</option>
               <option value="manufacturing">Manufacturing</option>
-              <option value="technology">Technology</option>
-              <option value="finance">Finance & Banking</option>
-              <option value="retail">Retail & Consumer</option>
-              <option value="healthcare">Healthcare</option>
-              <option value="agriculture">Agriculture</option>
-              <option value="transportation">Transportation & Logistics</option>
-              <option value="construction">Construction & Real Estate</option>
-              <option value="other">Other</option>
+              <option value="energy">Energy</option>
             </select>
           </div>
 

@@ -103,10 +103,10 @@ export default function ComparisonPage() {
     ticker: company1 || 'N/A',
     industry: 'N/A',
     marketCap: 'N/A',
-    esgScore: 0,
-    environmental: { score: 0 },
-    social: { score: 0 },
-    governance: { score: 0 },
+    esgScore: null,
+    environmental: { score: null },
+    social: { score: null },
+    governance: { score: null },
     strengths: [],
     weaknesses: []
   }
@@ -117,10 +117,10 @@ export default function ComparisonPage() {
     ticker: company2 || 'N/A',
     industry: 'N/A',
     marketCap: 'N/A',
-    esgScore: 0,
-    environmental: { score: 0 },
-    social: { score: 0 },
-    governance: { score: 0 },
+    esgScore: null,
+    environmental: { score: null },
+    social: { score: null },
+    governance: { score: null },
     strengths: [],
     weaknesses: []
   }

@@ -39,12 +39,14 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
+app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/investor", investorRoutes);
 app.use("/api/investor", investorDashboardRoutes);
 app.use("/api/investor", investorComparisonRoutes);
 app.use("/api/investor", investorPortfolioRoutes);
+
 
 
 
