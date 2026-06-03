@@ -7,6 +7,7 @@ const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 40000,
   connectionTimeoutMillis: 80000,
+    keepAlive: true,
 });
 
 pool.connect()
@@ -15,7 +16,8 @@ pool.connect()
     client.release();
   })
   .catch(err => {
-    console.error("❌ PostgreSQL connection failed:", err.message);
-  });
+  console.error("❌ PostgreSQL connection failed:");
+  console.error(err);
+});
 
 module.exports = pool;

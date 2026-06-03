@@ -9,6 +9,7 @@ const investorRoutes = require("./routes/investor.routes");
 const investorDashboardRoutes = require("./routes/investor.dashboard.routes");
 const investorComparisonRoutes = require("./routes/investor.comparison.routes");
 const investorPortfolioRoutes = require("./routes/investor.portfolio.routes");
+const newsRoutes = require("./routes/news.routes");
 
 
 // Middleware
@@ -46,6 +47,7 @@ app.use("/api/investor", investorRoutes);
 app.use("/api/investor", investorDashboardRoutes);
 app.use("/api/investor", investorComparisonRoutes);
 app.use("/api/investor", investorPortfolioRoutes);
+app.use("/api/investor", newsRoutes);
 
 
 

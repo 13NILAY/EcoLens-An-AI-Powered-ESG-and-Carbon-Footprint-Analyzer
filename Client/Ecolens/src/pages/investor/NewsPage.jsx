@@ -1,345 +1,441 @@
 // pages/investor/NewsPage.jsx
-import { useState } from 'react'
-import { Calendar, TrendingUp, TrendingDown, ExternalLink, Filter, Search } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
-  Legend, ResponsiveContainer, BarChart, Bar, Cell 
-} from 'recharts'
+  Search, TrendingUp, TrendingDown, AlertTriangle, Building2, 
+  Newspaper, ArrowUpRight, ChevronDown, Loader, AlertCircle,
+  Activity, BarChart3, Eye, Shield, Filter
+} from 'lucide-react'
+import { getAuthToken } from '../../services/auth'
+import { getNewsOverview, getNewsCompanies, getNewsTopAlerts } from '../../services/investor'
 
 export default function NewsPage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [timeRange, setTimeRange] = useState('7d')
+  const token = getAuthToken()
+  const navigate = useNavigate()
 
-  // Mock ESG news data with sentiment
-  const esgNews = [
-    {
-      id: 1,
-      title: 'Microsoft Announces 100% Renewable Energy Goal by 2025',
-      source: 'ESG Today',
-      date: '2024-01-15',
-      sentiment: 'positive',
-      score: 85,
-      category: 'environmental',
-      summary: 'Microsoft accelerates its sustainability commitments with new renewable energy targets and carbon removal initiatives.',
-      impact: 'high',
-      tags: ['Renewable Energy', 'Carbon Neutral', 'Tech'],
-      url: '#'
-    },
-    {
-      id: 2,
-      title: 'Tesla Faces Labor Controversy at German Factory',
-      source: 'Sustainable Biz',
-      date: '2024-01-14',
-      sentiment: 'negative',
-      score: 35,
-      category: 'social',
-      summary: 'Workers at Tesla Berlin plant raise concerns about working conditions and union representation.',
-      impact: 'medium',
-      tags: ['Labor', 'Automotive', 'Germany'],
-      url: '#'
-    },
-    {
-      id: 3,
-      title: 'NextEra Energy Leads Utilities in ESG Performance',
-      source: 'Green Investor',
-      date: '2024-01-14',
-      sentiment: 'positive',
-      score: 90,
-      category: 'environmental',
-      summary: 'NextEra continues to outperform peers in renewable energy adoption and emissions reduction.',
-      impact: 'high',
-      tags: ['Utilities', 'Renewable', 'Top Performer'],
-      url: '#'
-    },
-    {
-      id: 4,
-      title: 'Johnson & Johnson Enhances Board Diversity',
-      source: 'Governance Weekly',
-      date: '2024-01-13',
-      sentiment: 'positive',
-      score: 78,
-      category: 'governance',
-      summary: 'J&J appoints two new independent directors, improving board diversity and oversight.',
-      impact: 'medium',
-      tags: ['Board Diversity', 'Healthcare', 'Governance'],
-      url: '#'
-    },
-    {
-      id: 5,
-      title: 'Exxon Mobil Faces Climate Litigation Setback',
-      source: 'Climate Law Review',
-      date: '2024-01-12',
-      sentiment: 'negative',
-      score: 25,
-      category: 'environmental',
-      summary: 'Court rules against Exxon in landmark climate disclosure case, requiring more transparency.',
-      impact: 'high',
-      tags: ['Litigation', 'Oil & Gas', 'Climate'],
-      url: '#'
-    },
-    {
-      id: 6,
-      title: 'Apple Expands Supplier Sustainability Program',
-      source: 'Tech ESG',
-      date: '2024-01-12',
-      sentiment: 'positive',
-      score: 82,
-      category: 'social',
-      summary: 'Apple launches new initiatives to improve working conditions and environmental practices across its supply chain.',
-      impact: 'medium',
-      tags: ['Supply Chain', 'Tech', 'Labor'],
-      url: '#'
+  // Data state
+  const [overview, setOverview] = useState(null)
+  const [companies, setCompanies] = useState([])
+  const [alerts, setAlerts] = useState([])
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sentimentFilter, setSentimentFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('news_count')
+  const [sortOrder, setSortOrder] = useState('desc')
+
+  // UI state
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const [overviewData, alertsData] = await Promise.all([
+          getNewsOverview(token),
+          getNewsTopAlerts(token)
+        ])
+        setOverview(overviewData)
+        setAlerts(alertsData)
+      } catch (err) {
+        console.error('Error loading news data:', err)
+        setError('Failed to load news data. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    if (token) fetchData()
+  }, [token])
 
-  // Sentiment trend data
-  const sentimentTrend = [
-    { day: 'Jan 8', positive: 65, negative: 25, neutral: 10 },
-    { day: 'Jan 9', positive: 68, negative: 22, neutral: 10 },
-    { day: 'Jan 10', positive: 72, negative: 18, neutral: 10 },
-    { day: 'Jan 11', positive: 70, negative: 20, neutral: 10 },
-    { day: 'Jan 12', positive: 75, negative: 15, neutral: 10 },
-    { day: 'Jan 13', positive: 78, negative: 12, neutral: 10 },
-    { day: 'Jan 14', positive: 80, negative: 10, neutral: 10 },
-  ]
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const data = await getNewsCompanies(token, {
+          search: searchTerm,
+          sentiment: sentimentFilter,
+          sort: sortBy,
+          order: sortOrder
+        })
+        setCompanies(data)
+      } catch (err) {
+        console.error('Error fetching companies:', err)
+      }
+    }
+    if (token) {
+      const debounce = setTimeout(fetchCompanies, 300)
+      return () => clearTimeout(debounce)
+    }
+  }, [token, searchTerm, sentimentFilter, sortBy, sortOrder])
 
-  // Trending topics
-  const trendingTopics = [
-    { topic: 'Renewable Energy', count: 142, trend: 'up' },
-    { topic: 'Carbon Neutral', count: 128, trend: 'up' },
-    { topic: 'Board Diversity', count: 95, trend: 'stable' },
-    { topic: 'Supply Chain', count: 87, trend: 'up' },
-    { topic: 'Climate Litigation', count: 76, trend: 'up' },
-    { topic: 'Labor Rights', count: 65, trend: 'down' },
-  ]
-
-  const categories = [
-    { id: 'all', name: 'All News', count: esgNews.length },
-    { id: 'environmental', name: 'Environmental', count: esgNews.filter(n => n.category === 'environmental').length },
-    { id: 'social', name: 'Social', count: esgNews.filter(n => n.category === 'social').length },
-    { id: 'governance', name: 'Governance', count: esgNews.filter(n => n.category === 'governance').length },
-  ]
-
-  const getSentimentColor = (score) => {
-    if (score >= 70) return 'text-emerald-600 bg-emerald-50 border-emerald-200'
-    if (score >= 40) return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-    return 'text-red-600 bg-red-50 border-red-200'
+  const getSentimentBadge = (sentiment) => {
+    const styles = {
+      positive: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      negative: 'bg-red-50 text-red-700 border-red-200',
+      neutral: 'bg-amber-50 text-amber-700 border-amber-200'
+    }
+    const icons = {
+      positive: <TrendingUp size={14} />,
+      negative: <TrendingDown size={14} />,
+      neutral: <Activity size={14} />
+    }
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${styles[sentiment] || styles.neutral}`}>
+        {icons[sentiment] || icons.neutral}
+        {(sentiment || 'neutral').charAt(0).toUpperCase() + (sentiment || 'neutral').slice(1)}
+      </span>
+    )
   }
 
-  const getImpactColor = (impact) => {
-    switch (impact) {
-      case 'high': return 'bg-red-100 text-red-800'
-      case 'medium': return 'bg-yellow-100 text-yellow-800'
-      case 'low': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+  const getSeverityColor = (severity) => {
+    if (severity === 'high') return 'border-l-red-500 bg-red-50/50'
+    if (severity === 'medium') return 'border-l-amber-500 bg-amber-50/50'
+    return 'border-l-blue-500 bg-blue-50/50'
+  }
+
+  const handleSort = (col) => {
+    if (sortBy === col) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+    } else {
+      setSortBy(col)
+      setSortOrder('desc')
     }
   }
 
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'environmental': return 'text-emerald-600 bg-emerald-50'
-      case 'social': return 'text-blue-600 bg-blue-50'
-      case 'governance': return 'text-purple-600 bg-purple-50'
-      default: return 'text-gray-600 bg-gray-50'
-    }
+  const SortIndicator = ({ col }) => {
+    if (sortBy !== col) return <ChevronDown size={14} className="text-gray-300" />
+    return <ChevronDown size={14} className={`text-blue-600 transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
   }
 
-  const filteredNews = selectedCategory === 'all' 
-    ? esgNews 
-    : esgNews.filter(news => news.category === selectedCategory)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Loading news intelligence...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto mt-12">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 flex items-start gap-4">
+          <AlertCircle className="w-7 h-7 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-lg font-bold text-red-900 mb-2">Failed to Load News Data</h3>
+            <p className="text-red-700 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">ESG News & Sentiment</h1>
-          <p className="text-lg text-gray-600">Live ESG news monitoring and sentiment analysis</p>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">News & Sentiment Intelligence</h1>
+        <p className="text-gray-500 text-lg">Real-time company news analysis powered by FinBERT sentiment AI</p>
+      </div>
+
+      {/* Section 1 — Market Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Total Companies */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+              <Building2 size={20} className="text-blue-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Tracked</span>
+          </div>
+          <div className="text-3xl font-bold text-gray-900">{overview?.totalCompanies || 0}</div>
+          <div className="text-sm text-gray-500 mt-1">{overview?.totalArticles || 0} articles analyzed</div>
         </div>
-        <div className="flex items-center gap-4">
-          <select 
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="24h">Last 24 Hours</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
-          </select>
+
+        {/* Positive Sentiment */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <TrendingUp size={20} className="text-emerald-600" />
+            </div>
+            <span className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Positive</span>
+          </div>
+          <div className="text-3xl font-bold text-emerald-600">{overview?.positiveCompanies || 0}</div>
+          <div className="text-sm text-gray-500 mt-1">{overview?.positiveArticles || 0} positive articles</div>
+        </div>
+
+        {/* Negative Sentiment */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+              <TrendingDown size={20} className="text-red-600" />
+            </div>
+            <span className="text-xs font-medium text-red-600 uppercase tracking-wide">Negative</span>
+          </div>
+          <div className="text-3xl font-bold text-red-600">{overview?.negativeCompanies || 0}</div>
+          <div className="text-sm text-gray-500 mt-1">{overview?.negativeArticles || 0} negative articles</div>
+        </div>
+
+        {/* Neutral */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+              <Activity size={20} className="text-amber-600" />
+            </div>
+            <span className="text-xs font-medium text-amber-600 uppercase tracking-wide">Neutral</span>
+          </div>
+          <div className="text-3xl font-bold text-amber-600">{overview?.neutralCompanies || 0}</div>
+          <div className="text-sm text-gray-500 mt-1">{overview?.neutralArticles || 0} neutral articles</div>
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Avg Sentiment</h3>
-            <TrendingUp size={20} className="text-emerald-500" />
+      {/* Extra Insight Row */}
+      {overview && (overview.mostDiscussed !== 'N/A' || overview.strongestPositive !== 'N/A') && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-5">
+            <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Most Discussed</div>
+            <div className="text-lg font-bold text-gray-900">{overview.mostDiscussed}</div>
+            <div className="text-sm text-gray-500">{overview.mostDiscussedCount} articles</div>
           </div>
-          <div className="text-3xl font-bold text-emerald-600">72.5</div>
-          <div className="text-sm text-gray-500 mt-1">+5.2% from last week</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Positive News</h3>
-            <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">+</span>
-            </div>
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 p-5">
+            <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Strongest Positive</div>
+            <div className="text-lg font-bold text-gray-900">{overview.strongestPositive}</div>
+            <div className="text-sm text-gray-500">Score: {(overview.strongestPositiveScore * 100).toFixed(1)}%</div>
           </div>
-          <div className="text-3xl font-bold text-emerald-600">68%</div>
-          <div className="text-sm text-gray-500 mt-1">of total coverage</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Articles Today</h3>
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">📰</span>
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-blue-600">42</div>
-          <div className="text-sm text-gray-500 mt-1">ESG-related articles</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Risk Alerts</h3>
-            <TrendingDown size={20} className="text-red-500" />
-          </div>
-          <div className="text-3xl font-bold text-red-600">8</div>
-          <div className="text-sm text-gray-500 mt-1">Negative developments</div>
-        </div>
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Sentiment Trend */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Sentiment Trend Over Time</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sentimentTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="positive" 
-                  stroke="#10B981" 
-                  strokeWidth={3}
-                  name="Positive Sentiment"
-                  dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="negative" 
-                  stroke="#EF4444" 
-                  strokeWidth={2}
-                  name="Negative Sentiment"
-                  dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl border border-red-100 p-5">
+            <div className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Strongest Negative</div>
+            <div className="text-lg font-bold text-gray-900">{overview.strongestNegative}</div>
+            <div className="text-sm text-gray-500">Score: {(overview.strongestNegativeScore * 100).toFixed(1)}%</div>
           </div>
         </div>
+      )}
 
-        {/* Trending Topics */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Trending ESG Topics</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trendingTopics}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="topic" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" name="Mentions">
-                  {trendingTopics.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.trend === 'up' ? '#10B981' : entry.trend === 'down' ? '#EF4444' : '#6B7280'}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* News Feed */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-900">ESG News Feed</h3>
-            
-            {/* Category Filters */}
-            <div className="flex items-center gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    selectedCategory === category.id
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {category.name} ({category.count})
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* News List */}
-        <div className="divide-y divide-gray-200">
-          {filteredNews.map((news) => (
-            <div key={news.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(news.category)}`}>
-                    {news.category.charAt(0).toUpperCase() + news.category.slice(1)}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getImpactColor(news.impact)}`}>
-                    {news.impact.toUpperCase()} IMPACT
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getSentimentColor(news.score)}`}>
-                    Sentiment: {news.score}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar size={14} />
-                  {new Date(news.date).toLocaleDateString()}
-                </div>
+      {/* Section 2 — Top Alerts */}
+      {alerts.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center">
+                <Shield size={18} className="text-red-600" />
               </div>
-
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">{news.title}</h4>
-              <p className="text-gray-600 mb-4">{news.summary}</p>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Source: {news.source}</span>
-                  <div className="flex items-center gap-1">
-                    {news.tags.map((tag, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                        #{tag}
-                      </span>
-                    ))}
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Risk Alerts</h2>
+                <p className="text-sm text-gray-500">Companies with significant negative sentiment</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-4 space-y-3">
+            {alerts.map((alert, i) => (
+              <div
+                key={i}
+                onClick={() => navigate(`/investor/news/${encodeURIComponent(alert.companyName)}`)}
+                className={`border-l-4 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all ${getSeverityColor(alert.severity)}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle size={18} className={alert.severity === 'high' ? 'text-red-600' : 'text-amber-600'} />
+                    <div>
+                      <span className="font-bold text-gray-900">{alert.companyName}</span>
+                      <span className="text-sm text-gray-500 ml-3">{alert.negativeArticles} negative articles</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      alert.severity === 'high' ? 'bg-red-100 text-red-700' : 
+                      alert.severity === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {alert.severity.toUpperCase()}
+                    </span>
+                    <ArrowUpRight size={16} className="text-gray-400" />
                   </div>
                 </div>
+                {alert.sampleHeadline && (
+                  <p className="text-sm text-gray-600 mt-2 ml-7 line-clamp-1">{alert.sampleHeadline}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-                <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Read Full Article
-                  <ExternalLink size={14} />
-                </button>
+      {/* Section 3 — Company Table */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
+                <BarChart3 size={18} className="text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Company Sentiment Overview</h2>
+                <p className="text-sm text-gray-500">{companies.length} companies with active news coverage</p>
               </div>
             </div>
-          ))}
+
+            {/* Filters */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  id="news-search"
+                  type="text"
+                  placeholder="Search companies..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-56 transition-all"
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-200">
+                <Filter size={14} className="text-gray-400" />
+                <select
+                  id="sentiment-filter"
+                  value={sentimentFilter}
+                  onChange={(e) => setSentimentFilter(e.target.value)}
+                  className="bg-transparent text-sm focus:outline-none text-gray-700"
+                >
+                  <option value="all">All Sentiment</option>
+                  <option value="positive">Positive</option>
+                  <option value="negative">Negative</option>
+                  <option value="neutral">Neutral</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          {companies.length > 0 ? (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50/80">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    EIC Score
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                    onClick={() => handleSort('sentiment_score')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Sentiment <SortIndicator col="sentiment_score" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Score
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                    onClick={() => handleSort('news_count')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Articles <SortIndicator col="news_count" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Last Updated
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {companies.map((company, i) => (
+                  <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {company.companyName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {company.eicScore !== null ? (
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${
+                          company.eicScore >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          company.eicScore >= 40 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                          'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                          {Math.round(company.eicScore)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getSentimentBadge(company.dominantSentiment)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${
+                              company.dominantSentiment === 'positive' ? 'bg-emerald-500' :
+                              company.dominantSentiment === 'negative' ? 'bg-red-500' : 'bg-amber-500'
+                            }`}
+                            style={{ width: `${(company.avgSentimentScore * 100).toFixed(0)}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {(company.avgSentimentScore * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Newspaper size={14} className="text-gray-400" />
+                        <span className="text-sm font-medium text-gray-900">{company.newsCount}</span>
+                        <div className="flex gap-1 ml-1">
+                          {company.positiveCount > 0 && (
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full" title={`${company.positiveCount} positive`} />
+                          )}
+                          {company.negativeCount > 0 && (
+                            <span className="w-2 h-2 bg-red-500 rounded-full" title={`${company.negativeCount} negative`} />
+                          )}
+                          {company.neutralCount > 0 && (
+                            <span className="w-2 h-2 bg-amber-500 rounded-full" title={`${company.neutralCount} neutral`} />
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {company.lastUpdated ? new Date(company.lastUpdated).toLocaleDateString('en-IN', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                      }) : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        id={`view-${company.companyName.replace(/\s+/g, '-').toLowerCase()}`}
+                        onClick={() => navigate(`/investor/news/${encodeURIComponent(company.companyName)}`)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        <Eye size={14} />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="py-16 text-center">
+              <Newspaper size={48} className="mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">No News Data Available</h3>
+              <p className="text-gray-400 max-w-md mx-auto">
+                News data is populated daily via the GDELT pipeline. Run the pipeline to see sentiment analysis here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

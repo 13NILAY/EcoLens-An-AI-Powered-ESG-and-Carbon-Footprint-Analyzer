@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(api);
 
 const generateRecommendations = async (data) => {
   const model = genAI.getGenerativeModel({
-    model: "gemini-flash-latest", //   Updated to available model
+    model: "gemini-2.5-flash", //   Updated to available model
   });
 
   const prompt = `

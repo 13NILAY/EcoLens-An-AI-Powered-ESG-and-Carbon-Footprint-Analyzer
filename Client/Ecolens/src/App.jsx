@@ -11,6 +11,7 @@ import CompanyProfileSetup from './pages/company/ProfileSetup'
 import InvestorPortal from './pages/InvestorPortal'
 import InvestorDashboard from './pages/investor/DashboardPage'
 import NewsPage from './pages/investor/NewsPage'
+import CompanyNewsPage from './pages/investor/CompanyNewsPage'
 import PortfolioBuilder from './pages/investor/PortfolioBuilder'
 import ComparisonPage from './pages/investor/ComparisonPage'
 import InvestorProfileSetup from './pages/investor/ProfileSetup'
@@ -40,6 +41,7 @@ function App() {
         <Route path="/investor" element={<ProtectedRoute roles={['investor']}><InvestorPortal /></ProtectedRoute>}>
           <Route path="dashboard" element={<InvestorDashboard />} />
           <Route path="news" element={<NewsPage />} />
+          <Route path="news/:companyName" element={<CompanyNewsPage />} />
           <Route path="portfolio" element={<PortfolioBuilder />} />
           <Route path="compare" element={<ComparisonPage />} />
           <Route index element={<InvestorDashboard />} />

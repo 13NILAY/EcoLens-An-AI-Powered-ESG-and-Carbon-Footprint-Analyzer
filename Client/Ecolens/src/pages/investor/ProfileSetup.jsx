@@ -1,190 +1,243 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader, AlertCircle, CheckCircle, Leaf, Shield, Target } from 'lucide-react';
-import { getAuthToken } from '../../services/auth';
-import { getInvestorProfile, updateInvestorProfile } from '../../services/profile';
-import { ALLOWED_INDUSTRIES } from '../../services/investor';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Loader, AlertCircle, CheckCircle, Leaf, Shield, Target } from 'lucide-react'
+import { getAuthToken } from '../../services/auth'
+import { getInvestorProfile, updateInvestorProfile } from '../../services/profile'
+import { ALLOWED_INDUSTRIES } from '../../services/investor'
+
+const T  = '#00d4ff'   // teal — investor accent
+const G  = '#00e676'   // green
+const BG = '#030d18'
 
 export default function InvestorProfileSetup() {
-  const navigate = useNavigate();
-  const token = getAuthToken();
+  const navigate = useNavigate()
+  const token = getAuthToken()
 
   const [formData, setFormData] = useState({
-    riskTolerance: 'Medium',
-    minEsgScore: 50,
-    preferredIndustries: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+    riskTolerance: 'Medium', minEsgScore: 50, preferredIndustries: []
+  })
+  const [loading,    setLoading]    = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error,      setError]      = useState('')
+  const [success,    setSuccess]    = useState('')
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetch = async () => {
       try {
-        if (!token) return navigate('/login');
-        const data = await getInvestorProfile(token);
+        if (!token) return navigate('/login')
+        const data = await getInvestorProfile(token)
         setFormData({
-          riskTolerance: data.risk_tolerance || 'Medium',
-          minEsgScore: data.min_esg_score || 50,
-          preferredIndustries: data.preferred_industries || []
-        });
-      } catch (err) {
-        // Profile not found – ignore, will create new
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [token, navigate]);
+          riskTolerance:       data.risk_tolerance       || 'Medium',
+          minEsgScore:         data.min_esg_score        || 50,
+          preferredIndustries: data.preferred_industries || [],
+        })
+      } catch { /* first time */ } finally { setLoading(false) }
+    }
+    fetch()
+  }, [token, navigate])
 
-  const toggleIndustry = (industry) => {
-    setFormData(prev => ({
-      ...prev,
-      preferredIndustries: prev.preferredIndustries.includes(industry)
-        ? prev.preferredIndustries.filter(i => i !== industry)
-        : [...prev.preferredIndustries, industry]
-    }));
-  };
+  const toggleIndustry = (ind) =>
+    setFormData(p => ({
+      ...p,
+      preferredIndustries: p.preferredIndustries.includes(ind)
+        ? p.preferredIndustries.filter(i => i !== ind)
+        : [...p.preferredIndustries, ind],
+    }))
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setError('')
     if (formData.preferredIndustries.length === 0) {
-      setError('Please select at least one preferred industry.');
-      return;
+      setError('Please select at least one preferred industry.')
+      return
     }
-
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      await updateInvestorProfile(formData, token);
-      setSuccess('Profile saved successfully!');
-      setTimeout(() => navigate('/investor/dashboard'), 1200);
+      await updateInvestorProfile(formData, token)
+      setSuccess('Profile saved successfully!')
+      setTimeout(() => navigate('/investor/dashboard'), 1200)
     } catch (err) {
-      setError(err.message || 'Failed to save profile');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
+      setError(err.message || 'Failed to save profile')
+    } finally { setSubmitting(false) }
   }
 
+  if (loading) return (
+    <div style={s.root}>
+      <div style={{ textAlign:'center' }}>
+        <Loader style={{ color: T, width:40, height:40, animation:'spin 1s linear infinite', display:'block', margin:'0 auto 1rem' }} />
+        <p style={{ color:'#94a3b8' }}>Loading profile…</p>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+
+  const strengthBar = [
+    { label:'0 – Any', pct: 0 },
+    { label:'50 – Moderate', pct: 50 },
+    { label:'100 – Best Only', pct: 100 },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
+    <div style={s.root}>
+      <div style={s.card}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Leaf className="text-white" size={28} />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Investor Profile</h1>
-          <p className="text-gray-600">Set up your ESG investment preferences</p>
+        <div style={{ textAlign:'center', marginBottom:'2rem' }}>
+          <div style={s.logoWrap}><Leaf size={28} style={{ color: T }} /></div>
+          <h1 style={s.heading}>Investor Profile</h1>
+          <p style={{ color:'#64748b', fontSize:'0.9rem', marginTop:'0.4rem' }}>
+            Set up your ESG investment preferences
+          </p>
         </div>
 
-        {/* Success message */}
-        {success && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 mb-6">
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
-            <p className="text-emerald-700 font-medium">{success}</p>
-          </div>
-        )}
+        {success && <div style={s.msgSuccess}><CheckCircle size={15} />{success}</div>}
+        {error   && <div style={s.msgError}><AlertCircle size={15} />{error}</div>}
 
-        {/* Error message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 mb-6">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <p className="text-red-700 font-medium">{error}</p>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Preferred Industries */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Target size={20} className="text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Preferred Industries</h3>
+          <div style={s.section}>
+            <div style={s.sectionHead}>
+              <Target size={18} style={{ color: T }} />
+              <h3 style={s.sectionTitle}>Preferred Industries</h3>
             </div>
-            <p className="text-sm text-gray-500 mb-4">Select industries you're interested in investing in</p>
-            <div className="grid grid-cols-2 gap-3">
-              {ALLOWED_INDUSTRIES.map(industry => (
-                <label
-                  key={industry}
-                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                    formData.preferredIndustries.includes(industry)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.preferredIndustries.includes(industry)}
-                    onChange={() => toggleIndustry(industry)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700 capitalize">{industry}</span>
-                </label>
-              ))}
+            <p style={{ fontSize:'0.8rem', color:'#64748b', marginBottom:'0.85rem' }}>
+              Select industries you're interested in investing in
+            </p>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.6rem' }}>
+              {ALLOWED_INDUSTRIES.map(ind => {
+                const active = formData.preferredIndustries.includes(ind)
+                return (
+                  <label key={ind} style={{
+                    display:'flex', alignItems:'center', gap:'0.6rem',
+                    padding:'0.6rem 0.75rem',
+                    background: active ? 'rgba(0,212,255,0.07)' : 'rgba(5,26,46,0.8)',
+                    border: active ? '1.5px solid rgba(0,212,255,0.35)' : '1.5px solid rgba(255,255,255,0.06)',
+                    borderRadius:10, cursor:'pointer', transition:'all 0.2s',
+                  }}>
+                    <input type="checkbox" checked={active} onChange={() => toggleIndustry(ind)}
+                      style={{ accentColor: T, cursor:'pointer', flexShrink:0 }} />
+                    <span style={{ fontSize:'0.82rem', fontWeight:500, color: active ? '#ffffff' : '#94a3b8', textTransform:'capitalize' }}>{ind}</span>
+                  </label>
+                )
+              })}
             </div>
           </div>
 
           {/* Risk Tolerance */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Shield size={20} className="text-yellow-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Risk Appetite</h3>
+          <div style={s.section}>
+            <div style={s.sectionHead}>
+              <Shield size={18} style={{ color:'#f59e0b' }} />
+              <h3 style={s.sectionTitle}>Risk Appetite</h3>
             </div>
-            <select
-              value={formData.riskTolerance}
-              onChange={e => setFormData({ ...formData, riskTolerance: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            >
+            <select value={formData.riskTolerance}
+              onChange={e => setFormData(p => ({ ...p, riskTolerance: e.target.value }))}
+              style={s.input}>
               <option value="Low">Low – Conservative</option>
               <option value="Medium">Medium – Balanced</option>
               <option value="High">High – Aggressive</option>
             </select>
           </div>
 
-          {/* Minimum ESG Score */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Minimum ESG Score</h3>
-              <span className="text-2xl font-bold text-blue-600">{formData.minEsgScore}</span>
+          {/* Min ESG Score */}
+          <div style={s.section}>
+            <div style={{ ...s.sectionHead, justifyContent:'space-between' }}>
+              <h3 style={s.sectionTitle}>Minimum ESG Score</h3>
+              <span style={{ fontSize:'1.4rem', fontWeight:700, color: T }}>{formData.minEsgScore}</span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={formData.minEsgScore}
-              onChange={e => setFormData({ ...formData, minEsgScore: +e.target.value })}
-              className="w-full accent-blue-600"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>0 – Any</span>
-              <span>50 – Moderate</span>
-              <span>100 – Best Only</span>
+            <input type="range" min="0" max="100" value={formData.minEsgScore}
+              onChange={e => setFormData(p => ({ ...p, minEsgScore: +e.target.value }))}
+              style={{ width:'100%', accentColor: T, margin:'0.5rem 0' }} />
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.72rem', color:'#64748b' }}>
+              <span>0 – Any</span><span>50 – Moderate</span><span>100 – Best Only</span>
             </div>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Saving...' : 'Save Profile'}
+          <button type="submit" id="investor-profile-submit" disabled={submitting}
+            style={{ ...s.btn, opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+            onMouseEnter={e => { if (!submitting) Object.assign(e.currentTarget.style, s.btnHover) }}
+            onMouseLeave={e => { if (!submitting) Object.assign(e.currentTarget.style, s.btn) }}>
+            {submitting ? <><Loader size={16} style={{ animation:'spin 1s linear infinite' }} /> Saving…</> : 'Save Profile & Continue'}
           </button>
         </form>
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        select option { background: #051a2e; color: #ffffff; }
+      `}</style>
     </div>
-  );
+  )
+}
+
+const s = {
+  root: {
+    minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
+    background: BG, padding:'2rem 1.25rem',
+    fontFamily:"'DM Sans', system-ui, sans-serif",
+  },
+  card: {
+    width:'100%', maxWidth:480,
+    background:'rgba(7,35,61,0.8)',
+    border:'1px solid rgba(0,212,255,0.1)',
+    borderRadius:24, padding:'2.25rem',
+    backdropFilter:'blur(20px)',
+    boxShadow:'0 24px 60px rgba(0,0,0,0.5)',
+  },
+  logoWrap: {
+    width:56, height:56,
+    background:'rgba(0,212,255,0.1)',
+    border:'1px solid rgba(0,212,255,0.25)',
+    borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center',
+    margin:'0 auto 1rem',
+  },
+  heading: {
+    fontFamily:"'Cormorant Garamond', serif", fontSize:'1.8rem', fontWeight:700,
+    color:'#ffffff', letterSpacing:'-0.02em', margin:0,
+  },
+  section: {
+    background:'rgba(5,26,46,0.7)',
+    border:'1px solid rgba(0,212,255,0.08)',
+    borderRadius:14, padding:'1rem 1.1rem',
+  },
+  sectionHead: { display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'0.5rem' },
+  sectionTitle: { fontSize:'0.95rem', fontWeight:600, color:'#ffffff', margin:0 },
+  input: {
+    width:'100%', padding:'0.72rem 1rem',
+    background:'rgba(5,26,46,0.9)', border:'1px solid rgba(0,212,255,0.15)',
+    borderRadius:10, color:'#ffffff', fontSize:'0.88rem',
+    fontFamily:"'DM Sans', sans-serif", outline:'none', boxSizing:'border-box',
+    marginTop:'0.25rem',
+  },
+  btn: {
+    display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem',
+    width:'100%', padding:'0.9rem',
+    background:'linear-gradient(135deg, #00d4ff, #0369a1)',
+    border:'none', borderRadius:12, color: BG,
+    fontSize:'0.95rem', fontWeight:700,
+    fontFamily:"'DM Sans', sans-serif",
+    boxShadow:'0 4px 18px rgba(0,212,255,0.35)', boxSizing:'border-box',
+    transition:'all 0.25s',
+  },
+  btnHover: {
+    display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem',
+    width:'100%', padding:'0.9rem',
+    background:'linear-gradient(135deg, #33e0ff, #0369a1)',
+    border:'none', borderRadius:12, color: BG,
+    fontSize:'0.95rem', fontWeight:700,
+    fontFamily:"'DM Sans', sans-serif",
+    boxShadow:'0 10px 32px rgba(0,212,255,0.5)',
+    transform:'translateY(-1px)', boxSizing:'border-box', cursor:'pointer',
+  },
+  msgSuccess: {
+    display:'flex', alignItems:'center', gap:'0.5rem',
+    padding:'0.7rem 1rem', background:'rgba(0,212,255,0.08)',
+    border:'1px solid rgba(0,212,255,0.2)', borderRadius:10,
+    color: T, fontSize:'0.85rem', marginBottom:'1rem',
+  },
+  msgError: {
+    display:'flex', alignItems:'center', gap:'0.5rem',
+    padding:'0.7rem 1rem', background:'rgba(248,113,113,0.08)',
+    border:'1px solid rgba(248,113,113,0.2)', borderRadius:10,
+    color:'#f87171', fontSize:'0.85rem', marginBottom:'1rem',
+  },
 }

@@ -237,3 +237,107 @@ export const saveInvestorPortfolio = async (token, portfolioData) => {
     throw error
   }
 }
+
+// ============================================================
+// News & Sentiment API Functions
+// ============================================================
+
+// Get news dashboard overview stats
+export const getNewsOverview = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/investor/news/overview`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error(`Failed to fetch news overview: ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching news overview:', error)
+    throw error
+  }
+}
+
+// Get companies with sentiment data
+export const getNewsCompanies = async (token, filters = {}) => {
+  try {
+    const params = new URLSearchParams()
+    if (filters.search) params.append('search', filters.search)
+    if (filters.sentiment && filters.sentiment !== 'all') params.append('sentiment', filters.sentiment)
+    if (filters.sort) params.append('sort', filters.sort)
+    if (filters.order) params.append('order', filters.order)
+    const qs = params.toString()
+    const url = `${API_BASE_URL}/investor/news/companies${qs ? '?' + qs : ''}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error(`Failed to fetch news companies: ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching news companies:', error)
+    throw error
+  }
+}
+
+// Get top negative sentiment alerts
+export const getNewsTopAlerts = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/investor/news/top-alerts`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error(`Failed to fetch top alerts: ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching top alerts:', error)
+    throw error
+  }
+}
+
+// Get all news articles for a specific company
+export const getCompanyNews = async (token, companyName) => {
+  try {
+    const encoded = encodeURIComponent(companyName)
+    const response = await fetch(`${API_BASE_URL}/investor/news/company/${encoded}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error(`Failed to fetch company news: ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching company news:', error)
+    throw error
+  }
+}
+
+// Get investor insight summary for a company
+export const getCompanyNewsSummary = async (token, companyName) => {
+  try {
+    const encoded = encodeURIComponent(companyName)
+    const response = await fetch(`${API_BASE_URL}/investor/news/company/${encoded}/summary`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error(`Failed to fetch company summary: ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching company summary:', error)
+    throw error
+  }
+}

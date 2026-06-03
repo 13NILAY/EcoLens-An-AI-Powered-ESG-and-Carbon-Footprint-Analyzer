@@ -11,6 +11,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
  */
 export const getCompanyProfile = async (token) => {
   try {
+        console.log("PROFILE API HIT");
+
+  
     const response = await fetch(`${API_BASE_URL}/api/company/profile`, {
       method: 'GET',
       headers: {
@@ -24,7 +27,7 @@ export const getCompanyProfile = async (token) => {
     if (!response.ok) {
       throw new Error(data.message || 'Failed to fetch profile')
     }
-
+      console.log("QUERY SUCCESS");
     return data
   } catch (error) {
     throw error
