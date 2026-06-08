@@ -201,7 +201,7 @@ const uploadReport = async (req, res) => {
     // ========================================
     // STEP 10: Generate AI Recommendations
     // ========================================
-    try {
+   try {
       const existing = await pool.query(
         "SELECT id FROM ai_recommendations WHERE report_id = $1",
         [reportId]

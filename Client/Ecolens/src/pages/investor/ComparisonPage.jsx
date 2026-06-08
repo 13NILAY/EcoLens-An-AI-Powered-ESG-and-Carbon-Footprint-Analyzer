@@ -368,76 +368,86 @@ export default function ComparisonPage() {
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
-
-      {/* Strengths & Weaknesses */}
+      </div>      {/* Strengths & Weaknesses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Company 1 */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">{c1Data.name} - Analysis</h3>
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold text-emerald-600 mb-3 flex items-center gap-2">
-              <TrendingUp size={18} />
-              Key Strengths
-            </h4>
-            <div className="space-y-2">
-              {c1Data.strengths.map((strength, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{strength}</span>
-                </div>
-              ))}
+        {[
+          { cData: c1Data, color: 'blue' },
+          { cData: c2Data, color: 'emerald' }
+        ].map(({ cData, color }) => (
+          <div key={cData.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">{cData.name} — Analysis</h3>
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                cData.esgScore >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                cData.esgScore >= 60 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                ESG {cData.esgScore}
+              </span>
             </div>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold text-red-600 mb-3 flex items-center gap-2">
-              <TrendingDown size={18} />
-              Areas for Improvement
-            </h4>
-            <div className="space-y-2">
-              {c1Data.weaknesses.map((weakness, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{weakness}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Company 2 */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">{c2Data.name} - Analysis</h3>
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold text-emerald-600 mb-3 flex items-center gap-2">
-              <TrendingUp size={18} />
-              Key Strengths
-            </h4>
-            <div className="space-y-2">
-              {c2Data.strengths.map((strength, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{strength}</span>
+            {/* Key Strengths */}
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-emerald-700 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <TrendingUp size={15} />
+                Key Strengths
+                <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                  {cData.strengths.length}
+                </span>
+              </h4>
+              <div className="space-y-2">
+                {cData.strengths.length > 0 ? cData.strengths.map((strength, index) => (
+                  <div key={index} className="flex items-start gap-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl hover:bg-emerald-100 transition-colors">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 leading-snug">{strength}</span>
+                  </div>
+                )) : (
+                  <div className="text-sm text-gray-400 italic p-3">No strengths identified</div>
+                )}
+              </div>
+            </div>
+
+            {/* Areas for Improvement */}
+            <div>
+              <h4 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <TrendingDown size={15} />
+                Areas for Improvement
+                <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                  {cData.weaknesses.length}
+                </span>
+              </h4>
+              <div className="space-y-2">
+                {cData.weaknesses.length > 0 ? cData.weaknesses.map((weakness, index) => (
+                  <div key={index} className="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition-colors">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 leading-snug">{weakness}</span>
+                  </div>
+                )) : (
+                  <div className="text-sm text-gray-400 italic p-3">No improvement areas identified</div>
+                )}
+              </div>
+            </div>
+
+            {/* Sub-score mini summary */}
+            <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2 text-center">
+              {[
+                { label: 'Environmental', score: cData.environmental?.score },
+                { label: 'Social', score: cData.social?.score },
+                { label: 'Governance', score: cData.governance?.score }
+              ].map(({ label, score }) => (
+                <div key={label} className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-gray-500">{label}</span>
+                  <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${
+                    score >= 80 ? 'text-emerald-700 bg-emerald-50' :
+                    score >= 60 ? 'text-yellow-700 bg-yellow-50' :
+                    'text-red-700 bg-red-50'
+                  }`}>{score ?? '—'}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div>
-            <h4 className="text-lg font-semibold text-red-600 mb-3 flex items-center gap-2">
-              <TrendingDown size={18} />
-              Areas for Improvement
-            </h4>
-            <div className="space-y-2">
-              {c2Data.weaknesses.map((weakness, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{weakness}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   )
-}
+}

@@ -13,34 +13,44 @@ const getCompanies = async (req, res) => {
       return res.status(400).json({ message: "Invalid score range: minScore cannot be greater than maxScore" });
     }
 
-    let query = `
-      SELECT 
-        c.id,
-        c.name,
-        c.industry,
-        es.overall_score AS esg_score,
-        es.environmental,
-        es.social,
-        es.governance
-      FROM companies c
-      JOIN reports r ON r.company_id = c.id
-      JOIN esg_scores es ON es.report_id = r.id
-      WHERE es.overall_score BETWEEN $1 AND $2
-    `;
-
+    // Build filter clauses separately so we can use them inside the subquery
     const values = [min, max];
+    let industryClause = "";
+    let searchClause = "";
 
     if (industry && industry !== "all") {
       values.push(industry.trim());
-      query += ` AND c.industry = $${values.length}`;
+      industryClause = ` AND c.industry = $${values.length}`;
     }
 
     if (search && search.trim()) {
       values.push(`%${search.trim()}%`);
-      query += ` AND c.name ILIKE $${values.length}`;
+      searchClause = ` AND c.name ILIKE $${values.length}`;
     }
 
-    query += ` ORDER BY es.overall_score DESC`;
+    // DISTINCT ON (c.id) keeps only one row per company — the one with the
+    // highest ESG score (per the inner ORDER BY c.id, overall_score DESC).
+    // The outer query then re-sorts by esg_score DESC for the ranking display.
+    const query = `
+      SELECT * FROM (
+        SELECT DISTINCT ON (c.id)
+          c.id,
+          c.name,
+          c.industry,
+          es.overall_score AS esg_score,
+          es.environmental,
+          es.social,
+          es.governance
+        FROM companies c
+        JOIN reports r ON r.company_id = c.id
+        JOIN esg_scores es ON es.report_id = r.id
+        WHERE es.overall_score BETWEEN $1 AND $2
+        ${industryClause}
+        ${searchClause}
+        ORDER BY c.id, es.overall_score DESC
+      ) AS ranked
+      ORDER BY esg_score DESC
+    `;
 
     const result = await pool.query(query, values);
     res.json(result.rows);

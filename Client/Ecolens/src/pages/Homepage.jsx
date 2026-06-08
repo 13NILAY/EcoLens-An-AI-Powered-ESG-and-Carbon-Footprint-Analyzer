@@ -421,7 +421,7 @@ export default function Homepage() {
 
           {/* Subtext */}
           <p style={{ fontSize:'clamp(1rem, 2.3vw, 1.2rem)', color:C.whiteD, lineHeight:1.8, maxWidth:560, margin:'0 auto 2.5rem', opacity:mounted?1:0, transform:mounted?'translateY(0)':'translateY(18px)', transition:'opacity 0.85s ease 0.7s, transform 0.85s ease 0.7s' }}>
-            EcoLens helps you understand, track, and act on environmental change — one lens at a time.
+          Transforming Sustainability Data into Actionable Insights
           </p>
 
           {/* CTAs */}
@@ -449,7 +449,7 @@ export default function Homepage() {
 
           {/* Micro-copy */}
           <div style={{ display:'flex', gap:'1.5rem', justifyContent:'center', marginTop:'2.25rem', flexWrap:'wrap', opacity:mounted?1:0, transition:'opacity 0.8s ease 1.1s' }}>
-            {['1 tree planted per signup','Carbon neutral hosting','Open ESG data'].map((t,i)=>(
+            {['11 ESG Metrics Tracked','AI-Powered ESG Analysis','NLP-Based News Sentiment'].map((t,i)=>(
               <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.35rem', fontSize:'0.77rem', color:C.whiteFaint }}>
                 <Leaf size={10} style={{ color:C.green }}/>{t}
               </div>
@@ -464,25 +464,7 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ════════════════ STATS BAR ════════════════ */}
-      <div style={{ background:'rgba(5,26,46,0.98)', backdropFilter:'blur(22px)', borderTop:`1px solid rgba(0,230,118,0.08)`, borderBottom:`1px solid rgba(0,230,118,0.08)` }}>
-        <div data-reveal style={{ maxWidth:1100, margin:'0 auto', padding:'1.6rem 1.5rem', display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'0.75rem' }} className="earth-reveal eg-stats-grid">
-          {[
-            { val:'500+',  label:'Companies Analyzed', icon:Building },
-            { val:'50K+',  label:'Reports Processed',  icon:BarChart3 },
-            { val:'99.2%', label:'Data Accuracy',       icon:CheckCircle },
-            { val:'1 🌱',  label:'Tree Per Signup',     icon:Leaf },
-          ].map(({val,label,icon:Icon},i)=>(
-            <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', padding:'0.5rem', gap:'0.28rem' }}>
-              <div style={{ width:28, height:28, background:'rgba(0,230,118,0.08)', border:'1px solid rgba(0,230,118,0.18)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:C.green, marginBottom:'0.15rem' }}>
-                <Icon size={13}/>
-              </div>
-              <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(1.5rem,3vw,2.2rem)', fontWeight:700, color:C.white, lineHeight:1 }}>{val}</div>
-              <div style={{ fontSize:'0.72rem', color:C.whiteFaint, fontWeight:500 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+     
 
       {/* ════════════════ WAVE → MISSION ════════════════ */}
       <Wave fill={C.bgMid} style={{ background:'rgba(5,26,46,0.98)', marginTop:'-1px' }}/>
@@ -499,15 +481,15 @@ export default function Homepage() {
               <Globe size={10}/> Our Mission
             </div>
             <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(2rem,5vw,3.6rem)', fontWeight:700, color:C.white, letterSpacing:'-0.025em', lineHeight:1.08, marginBottom:'1.2rem' }}>
-              Data as a Bridge{' '}
+              Transforming ESG Reports into{' '}
               <span style={{ background:`linear-gradient(135deg, ${C.green}, ${C.teal})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontStyle:'italic', display:'block' }}>
-                Between Humanity and the Earth
+                Actionable Insights
               </span>
             </h2>
             <p style={{ fontSize:'1rem', color:C.whiteD, lineHeight:1.82, maxWidth:520, marginBottom:'1.6rem' }}>
-              EcoLens translates complex sustainability data into living intelligence — helping companies reduce their footprint and investors build portfolios that honour the planet.
+              EcoLens uses AI and NLP to analyze sustainability reports, calculate ESG scores, monitor public sentiment, and help investors identify sustainable companies.
             </p>
-            {['AI-powered ESG score calculation','Carbon Scope 1, 2 & 3 analysis','Real-time news sentiment monitoring','1 tree planted per new account'].map((f,i)=>(
+            {['AI-powered ESG score calculation','Carbon Scope 1, 2 & 3 analysis','Real-time news sentiment monitoring','11 ESG Metrics Extraction'].map((f,i)=>(
               <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'0.65rem', fontSize:'0.9rem', color:C.whiteD }}>
                 <CheckCircle size={13} style={{ color:C.green, flexShrink:0 }}/>{f}
               </div>
@@ -555,8 +537,8 @@ export default function Homepage() {
               <Leaf size={10}/> Platform Features
             </div>
             <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(2rem,5vw,3.4rem)', fontWeight:700, color:C.white, letterSpacing:'-0.025em', lineHeight:1.1, marginBottom:'0.85rem' }}>
-              Intelligence That{' '}
-              <span style={{ background:`linear-gradient(135deg, ${C.green}, ${C.teal})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontStyle:'italic' }}>Grows</span>
+              Core Platform{' '}
+              <span style={{ background:`linear-gradient(135deg, ${C.green}, ${C.teal})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontStyle:'italic' }}>Capabilities</span>
             </h2>
             <p style={{ fontSize:'1rem', color:C.whiteD, maxWidth:500, margin:'0 auto 2rem', lineHeight:1.72 }}>
               Two powerful portals — one for companies measuring impact, one for investors building tomorrow.
@@ -672,12 +654,12 @@ export default function Homepage() {
               <Leaf size={10}/> Begin Your Journey
             </div>
             <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(2rem,5.5vw,3.8rem)', fontWeight:700, color:C.white, letterSpacing:'-0.025em', lineHeight:1.08, marginBottom:'1rem' }}>
-              The Earth Is{' '}
-              <span style={{ background:`linear-gradient(135deg, ${C.green}, ${C.teal})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontStyle:'italic' }}>Watching.</span>
-              <br/>Are You?
+              Build Smarter{' '}
+              <span style={{ background:`linear-gradient(135deg, ${C.green}, ${C.teal})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontStyle:'italic' }}>Sustainable</span>
+              <br/>Decisions
             </h2>
             <p style={{ fontSize:'1rem', color:C.whiteD, maxWidth:450, margin:'0 auto', lineHeight:1.75 }}>
-              Join hundreds of companies and investors using EcoLens to build a future the Earth deserves.
+              Explore ESG performance, sustainability trends, and investment opportunities through AI-driven analysis.
             </p>
           </div>
 

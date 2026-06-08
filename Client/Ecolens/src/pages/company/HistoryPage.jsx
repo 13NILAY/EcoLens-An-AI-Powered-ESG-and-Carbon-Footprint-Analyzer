@@ -172,13 +172,13 @@ export default function HistoryPage() {
             {filteredReports.map((report) => (
               <div key={report.id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:border-emerald-200">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
                       <FileText size={24} className="text-white" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 line-clamp-1">{report.name || 'Unnamed Report'}</h3>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate" title={report.name || 'Unnamed Report'}>{report.name || 'Unnamed Report'}</h3>
                       <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                         <Calendar size={14} />
                         <span>{formatDate(report.date)}</span>

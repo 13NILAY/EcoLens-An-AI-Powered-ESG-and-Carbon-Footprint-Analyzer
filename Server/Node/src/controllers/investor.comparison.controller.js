@@ -30,22 +30,69 @@ const getCompanyList = async (req, res) => {
 };
 
 /* -----------------------------------
-   Helper: derive strengths & weaknesses
+   Helper: derive data-driven insights
 ----------------------------------- */
-const deriveInsights = (scores) => {
+const scoreLabel = (score) => {
+  if (score >= 85) return "excellent";
+  if (score >= 70) return "strong";
+  if (score >= 55) return "moderate";
+  if (score >= 40) return "weak";
+  return "critical";
+};
+
+const deriveInsights = (scores, peerScores = null) => {
   const strengths = [];
   const weaknesses = [];
+  const { environmental: E, social: S, governance: G, overall_score: overall } = scores;
 
-  if (scores.environmental >= 80) strengths.push("Strong environmental performance");
-  if (scores.social >= 80) strengths.push("Strong social initiatives");
-  if (scores.governance >= 80) strengths.push("Strong governance structure");
+  // --- Absolute strengths ---
+  if (E >= 80) strengths.push(`Environmental score of ${E} — ${scoreLabel(E)} sustainability practices`);
+  if (S >= 80) strengths.push(`Social score of ${S} — ${scoreLabel(S)} workforce and community engagement`);
+  if (G >= 80) strengths.push(`Governance score of ${G} — ${scoreLabel(G)} board and transparency standards`);
 
-  if (scores.environmental < 60) weaknesses.push("Environmental impact needs improvement");
-  if (scores.social < 60) weaknesses.push("Social practices need improvement");
-  if (scores.governance < 60) weaknesses.push("Governance concerns");
+  // Highest pillar callout
+  const pillars = [
+    { key: "Environmental", val: E },
+    { key: "Social", val: S },
+    { key: "Governance", val: G }
+  ].sort((a, b) => b.val - a.val);
+  const top = pillars[0];
+  const bottom = pillars[pillars.length - 1];
+  if (top.val >= 65 && top.val > bottom.val + 10) {
+    strengths.push(`${top.key} is the leading pillar at ${top.val} — above-average for this company`);
+  }
+  if (overall >= 70) {
+    strengths.push(`Overall ESG score of ${overall} places this company in the ${scoreLabel(overall)} tier`);
+  }
 
-  if (strengths.length === 0) strengths.push("Performance meets industry standards");
-  if (weaknesses.length === 0) weaknesses.push("No significant concerns identified");
+  // --- Absolute weaknesses ---
+  if (E < 60) weaknesses.push(`Environmental score of ${E} (${scoreLabel(E)}) — carbon and resource practices need attention`);
+  if (S < 60) weaknesses.push(`Social score of ${S} (${scoreLabel(S)}) — labor, DEI, or community policies require improvement`);
+  if (G < 60) weaknesses.push(`Governance score of ${G} (${scoreLabel(G)}) — transparency and board oversight gaps`);
+
+  // Lowest pillar callout
+  if (bottom.val < 75 && bottom.val < top.val - 10) {
+    weaknesses.push(`${bottom.key} is the weakest pillar at ${bottom.val} — primary area for targeted improvement`);
+  }
+  if (overall < 55) {
+    weaknesses.push(`Overall ESG score of ${overall} is below the ${scoreLabel(overall)} threshold — significant ESG risk`);
+  }
+
+  // --- Cross-company relative insights (optional) ---
+  if (peerScores) {
+    const peerE = peerScores.environmental;
+    const peerS = peerScores.social;
+    const peerG = peerScores.governance;
+    if (E - peerE >= 10) strengths.push(`Environmental score is ${E - peerE} points ahead of peer company`);
+    if (S - peerS >= 10) strengths.push(`Social score is ${S - peerS} points ahead of peer company`);
+    if (G - peerG >= 10) strengths.push(`Governance score is ${G - peerG} points ahead of peer company`);
+    if (peerE - E >= 10) weaknesses.push(`Environmental score lags peer by ${peerE - E} points — key catch-up opportunity`);
+    if (peerS - S >= 10) weaknesses.push(`Social score lags peer by ${peerS - S} points — key catch-up opportunity`);
+    if (peerG - G >= 10) weaknesses.push(`Governance score lags peer by ${peerG - G} points — key catch-up opportunity`);
+  }
+
+  if (strengths.length === 0) strengths.push(`Overall score of ${overall} meets baseline ESG standards`);
+  if (weaknesses.length === 0) weaknesses.push("No significant ESG concerns identified across all pillars");
 
   return { strengths, weaknesses };
 };
@@ -105,8 +152,8 @@ const compareCompanies = async (req, res) => {
     const company1Data = c1.rows[0];
     const company2Data = c2.rows[0];
 
-    const insights1 = deriveInsights(company1Data);
-    const insights2 = deriveInsights(company2Data);
+    const insights1 = deriveInsights(company1Data, company2Data);
+    const insights2 = deriveInsights(company2Data, company1Data);
 
     res.json({
       company1: {
